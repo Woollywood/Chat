@@ -26,6 +26,7 @@ export const router = createBrowserRouter(
 				<Route lazy={() => import('@/pages/settings')} path='settings' />
 				<Route lazy={() => import('@/pages/newProject')} path='new-project' />
 				<Route lazy={() => import('@/pages/help')} path='help' />
+				<Route lazy={() => import('@/pages/liveChat')} path='live-chat/:id' />
 			</Route>
 		</Route>,
 	),

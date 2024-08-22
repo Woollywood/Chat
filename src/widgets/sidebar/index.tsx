@@ -32,7 +32,15 @@ export default function Sidebar() {
 	}
 
 	async function handleCreateChannel(channelName: string) {
-		await supabase.from('channels').insert([{ slug: channelName, created_by: profile?.id! }]);
+		const { data } = await supabase
+			.from('channels')
+			.insert([{ slug: channelName, created_by: profile?.id! }])
+			.select()
+			.single();
+
+		await supabase
+			.from('channels_members')
+			.insert([{ user_id: profile?.id!, channel_id: data?.id!, invited_by: profile?.id! }]);
 		fetchChannels();
 		toggleChannelCreating();
 	}
