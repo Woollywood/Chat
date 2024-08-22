@@ -1,12 +1,12 @@
 import { Outlet } from 'react-router-dom';
 
-import { Navbar } from '@/components/navbar';
+import Sidebar from '@/widgets/sidebar';
 
 export default function DefaultLayout() {
 	return (
-		<div className='relative flex h-screen flex-col'>
-			<Navbar />
-			<main className='container mx-auto max-w-7xl flex-grow px-6 pt-16'>
+		<div className='relative grid h-screen grid-cols-[18rem_1fr] divide-x-1 divide-foreground-300'>
+			<Sidebar />
+			<main>
 				<Outlet />
 			</main>
 		</div>
