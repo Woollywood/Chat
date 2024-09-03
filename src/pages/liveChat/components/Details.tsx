@@ -79,7 +79,7 @@ export default function Details() {
 	}
 
 	return (
-		<div className='divide-y-1 divide-foreground-300'>
+		<div className='grid grid-rows-[auto_auto_1fr] divide-y-1 divide-foreground-300 overflow-hidden'>
 			<div className='flex h-28 items-center justify-center px-12 py-6'>
 				<h2 className='text-2xl font-medium'>Detail Channels</h2>
 			</div>
@@ -93,7 +93,7 @@ export default function Details() {
 					<h2 className='pl-2 text-xl font-semibold'># {channel?.slug}</h2>
 				)}
 			</div>
-			<div className='px-6 py-12'>
+			<div className='scrollbar overflow-y-auto px-6 py-12'>
 				<div className='mb-4 flex items-center justify-between gap-2'>
 					<h2 className='text-xl font-semibold uppercase text-gray-500'>Members</h2>
 					<InviteModal

@@ -51,12 +51,12 @@ export default function Sidebar() {
 	}
 
 	return (
-		<aside>
+		<aside className='grid h-screen grid-rows-[auto_1fr]'>
 			<div className='flex items-center gap-2 border-b border-b-foreground-300 p-6'>
 				<Avatar src={profile?.avatar_url!} />
 				<h3>{profile?.full_name}</h3>
 			</div>
-			<div className='divide-y-1 divide-foreground-300'>
+			<div className='scrollbar divide-y-1 divide-foreground-300 overflow-y-auto'>
 				<Section
 					actions={
 						<button

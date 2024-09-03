@@ -69,7 +69,7 @@ export default function InviteModal({ className, existingUserIds, onInvite }: Pr
 										<UserSkeleton />
 										<UserSkeleton />
 									</div>
-								) : (
+								) : users?.length! > 0 ? (
 									users?.map((user) => (
 										<div key={user.id} className='flex items-center gap-2'>
 											<Avatar src={user.avatar_url!} />
@@ -82,6 +82,10 @@ export default function InviteModal({ className, existingUserIds, onInvite }: Pr
 											</Button>
 										</div>
 									))
+								) : (
+									<h2 className='text-base font-medium'>
+										No users found or all found users are already in the group
+									</h2>
 								)}
 							</ModalBody>
 						</>
