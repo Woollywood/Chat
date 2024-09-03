@@ -8,6 +8,8 @@ export default function Header() {
 	const { data: channel, isLoading } = channelState;
 	const { data: members } = membersState;
 
+	const onlineCount = members?.filter((member) => member.profiles.status === 'ONLINE').length;
+
 	return (
 		<div className='grid grid-rows-[auto_1fr] divide-y-1 divide-foreground-300'>
 			{isLoading ? (
@@ -25,11 +27,16 @@ export default function Header() {
 			) : (
 				<div className='h-28 px-6 py-2 pb-4'>
 					<div className='mb-4 text-xl font-semibold'># {channel?.slug}</div>
-					<AvatarGroup isBordered>
-						{members?.map((member) => (
-							<Avatar key={member.id} size='sm' src={member.profiles?.avatar_url!} />
-						))}
-					</AvatarGroup>
+					<div className='flex items-center gap-4'>
+						<AvatarGroup isBordered>
+							{members?.map((member) => (
+								<Avatar key={member.id} size='sm' src={member.profiles?.avatar_url!} />
+							))}
+						</AvatarGroup>
+						<p className='text-foreground-700'>{members?.length} Members</p>
+						<div className='h-1 w-1 flex-shrink-0 rounded-full bg-foreground-300' />
+						<p className='text-green-500'>{onlineCount} Online</p>
+					</div>
 				</div>
 			)}
 			<div>Something</div>

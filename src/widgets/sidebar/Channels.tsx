@@ -47,7 +47,7 @@ export default function Channels({ isCreating, isLoading, channels, onCreated, o
 				channels?.map((channel) => (
 					<NavLink
 						key={channel.id}
-						className='flex items-center justify-between gap-4 whitespace-nowrap rounded-lg p-2 transition-colors [&.active]:bg-foreground [&.active]:text-background'
+						className='flex items-center justify-between gap-4 whitespace-nowrap rounded-lg p-2 transition-colors hover:bg-foreground-100'
 						to={`live-chat/${channel.id}`}>
 						<h3 className='line-clamp-1 text-lg'># {channel.slug}</h3>
 						<button
@@ -68,6 +68,7 @@ export default function Channels({ isCreating, isLoading, channels, onCreated, o
 				<form className='p-2 text-lg' onSubmit={onSubmit}>
 					<span className='pr-2'>#</span>
 					<input
+						// eslint-disable-next-line jsx-a11y/no-autofocus
 						autoFocus
 						className='bg-transparent outline-none'
 						placeholder='Channel name'
