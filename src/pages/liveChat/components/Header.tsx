@@ -1,7 +1,9 @@
 import { Skeleton } from '@nextui-org/skeleton';
-import { Avatar, AvatarGroup } from '@nextui-org/avatar';
+import { AvatarGroup } from '@nextui-org/avatar';
 
 import { useContextState } from '../context';
+
+import Avatar from '@/components/avatar';
 
 export default function Header() {
 	const { channel: channelState, members: membersState } = useContextState();
@@ -17,12 +19,18 @@ export default function Header() {
 					<div className='h-auto'>
 						<Skeleton className='flex h-6 w-64 rounded-full' />
 					</div>
-					<AvatarGroup isBordered>
-						<Avatar size='sm' />
-						<Avatar size='sm' />
-						<Avatar size='sm' />
-						<Avatar size='sm' />
-					</AvatarGroup>
+					<div className='flex h-auto items-center gap-4'>
+						<div className='flex items-center'>
+							<Skeleton className='flex h-10 w-10 rounded-full' />
+							<Skeleton className='-ml-2 flex h-10 w-10 rounded-full' />
+							<Skeleton className='-ml-2 flex h-10 w-10 rounded-full' />
+							<Skeleton className='-ml-2 flex h-10 w-10 rounded-full' />
+						</div>
+						<div className='flex items-center gap-2'>
+							<Skeleton className='flex h-6 w-24 rounded-full' />
+							<Skeleton className='flex h-6 w-12 rounded-full' />
+						</div>
+					</div>
 				</div>
 			) : (
 				<div className='h-28 px-6 py-2 pb-4'>

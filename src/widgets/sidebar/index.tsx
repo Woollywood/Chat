@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import { Avatar } from '@nextui-org/avatar';
 
 import Section from './Section';
 import Channels from './Channels';
@@ -9,6 +8,7 @@ import { Database } from '@/types/supabase';
 import { RootState } from '@/store';
 import { PlusIcon } from '@/components/icons';
 import { ChannelApi } from '@/api/ChannelApi';
+import Avatar from '@/components/avatar';
 
 export default function Sidebar() {
 	const { profile } = useSelector((state: RootState) => state.session);

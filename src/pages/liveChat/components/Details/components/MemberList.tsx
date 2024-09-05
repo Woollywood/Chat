@@ -1,8 +1,8 @@
 import { useSelector } from 'react-redux';
 import { Badge } from '@nextui-org/badge';
-import { Avatar } from '@nextui-org/avatar';
 import { clsx } from 'clsx';
 
+import Avatar from '@/components/avatar';
 import { Database } from '@/types/supabase';
 import { DeleteIcon } from '@/components/icons';
 import { RootState } from '@/store';
