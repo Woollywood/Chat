@@ -10,6 +10,7 @@ import { useContextState, useContextActions } from '../../../context';
 
 import MemberList from './MemberList';
 
+import { ChannelApi } from '@/api/ChannelApi';
 import { supabase } from '@/supabase';
 import { RootState } from '@/store';
 import { Database } from '@/types/supabase';
@@ -23,6 +24,7 @@ export default function Members() {
 	const { data: members, isLoading: isMembersLoading } = membersState;
 
 	const dispatch = useContextActions()!;
+	const channelSocketInstance = ChannelApi.getChannelSocketInstance();
 
 	function updateMembers(
 		payload: RealtimePostgresUpdatePayload<{
@@ -55,17 +57,10 @@ export default function Members() {
 	}
 
 	useEffect(() => {
-		const channel = supabase
-			.channel('user_activity_UPDATE')
-			.on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'user_activity' }, (payload) => {
-				if (payload?.new) {
-					updateMembers(payload);
-				}
-			})
-			.subscribe();
+		channelSocketInstance.connect(updateMembers);
 
 		return () => {
-			channel.unsubscribe();
+			channelSocketInstance.disconnect();
 		};
 	}, [updateMembers]);
 
@@ -104,11 +99,7 @@ export default function Members() {
 			},
 		});
 
-		const { data: invitedMember } = await supabase
-			.from('channels_members')
-			.insert([{ channel_id: channel?.id!, user_id: userId, invited_by: session?.user.id! }])
-			.select('*, profiles!channels_members_user_id_fkey ( *, user_activity!user_activity_user_id_fkey ( * ) )')
-			.single();
+		const invitedMember = await ChannelApi.inviteUser(channel!, userId, session!);
 
 		dispatch({
 			type: ActionType.SET_MEMBERS,

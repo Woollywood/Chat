@@ -32,7 +32,7 @@ export interface InitialState {
 	messages: MessagesState;
 }
 
-interface ContextActions extends Dispatch<Action> {}
+export interface ContextActions extends Dispatch<Action> {}
 
 const initialState: InitialState = {
 	channel: {

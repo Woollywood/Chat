@@ -4,7 +4,7 @@ import { Location, Params } from 'react-router-dom';
 import { useContextActions, useContextState, ChannelState } from '../context';
 import { ActionType } from '../reducer';
 
-import { supabase } from '@/supabase';
+import { ChannelApi } from '@/api/ChannelApi';
 
 export function useChannel(location: Location, params: Readonly<Params<string>>) {
 	const { channel: channelState } = useContextState();
@@ -13,7 +13,7 @@ export function useChannel(location: Location, params: Readonly<Params<string>>)
 
 	async function fetchChannel() {
 		dispatch({ type: ActionType.SET_CHANNEL, payload: { isLoading: true, data: null } as unknown as ChannelState });
-		const { data } = await supabase.from('channels').select('*').eq('id', params.id!).single();
+		const data = await ChannelApi.getFromId(params.id!);
 
 		dispatch({ type: ActionType.SET_CHANNEL, payload: { isLoading: false, data } });
 	}
@@ -38,10 +38,7 @@ export function useMembers(location: Location, params: Readonly<Params<string>>)
 				data: null,
 			},
 		});
-		const { data } = await supabase
-			.from('channels_members')
-			.select('*, profiles!channels_members_user_id_fkey ( *, user_activity!user_activity_user_id_fkey ( * ) )')
-			.eq('channel_id', params.id!);
+		const data = await ChannelApi.getChannelMembers(params.id!);
 
 		dispatch({
 			type: ActionType.SET_MEMBERS,

@@ -8,7 +8,7 @@ import Channels from './Channels';
 import { Database } from '@/types/supabase';
 import { RootState } from '@/store';
 import { PlusIcon } from '@/components/icons';
-import { supabase } from '@/supabase';
+import { ChannelApi } from '@/api/ChannelApi';
 
 export default function Sidebar() {
 	const { profile } = useSelector((state: RootState) => state.session);
@@ -22,7 +22,7 @@ export default function Sidebar() {
 	}, []);
 
 	async function fetchChannels() {
-		const { data } = await supabase.from('channels').select('*');
+		const data = await ChannelApi.getAll();
 
 		setChannels(data);
 	}
@@ -32,21 +32,13 @@ export default function Sidebar() {
 	}
 
 	async function handleCreateChannel(channelName: string) {
-		const { data } = await supabase
-			.from('channels')
-			.insert([{ slug: channelName, created_by: profile?.id! }])
-			.select()
-			.single();
-
-		await supabase
-			.from('channels_members')
-			.insert([{ user_id: profile?.id!, channel_id: data?.id!, invited_by: profile?.id! }]);
+		await ChannelApi.create(channelName, profile!);
 		fetchChannels();
 		toggleChannelCreating();
 	}
 
 	async function handleDeleteChannel(channelName: string) {
-		await supabase.from('channels').delete().eq('slug', channelName);
+		await ChannelApi.delete(channelName);
 		fetchChannels();
 	}
 
