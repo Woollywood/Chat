@@ -6,7 +6,7 @@ import { RealtimePostgresUpdatePayload } from '@supabase/supabase-js';
 import InviteModal from '../../InviteModal';
 import UserSkeleton from '../../UserSkeleton';
 import { ActionType } from '../../../reducer';
-import { useContextState, useContextActions, MembersState } from '../../../context';
+import { useContextState, useContextActions } from '../../../context';
 
 import MemberList from './MemberList';
 
