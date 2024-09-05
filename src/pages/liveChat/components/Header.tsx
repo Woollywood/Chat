@@ -8,7 +8,7 @@ export default function Header() {
 	const { data: channel, isLoading } = channelState;
 	const { data: members } = membersState;
 
-	const onlineCount = members?.filter((member) => member.profiles.status === 'ONLINE').length;
+	const onlineCount = members?.filter((member) => member.profiles.user_activity.status === 'ONLINE').length;
 
 	return (
 		<div className='grid grid-rows-[auto_1fr] divide-y-1 divide-foreground-300'>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@nextui-org/button';
 import { Modal, ModalContent, ModalHeader, ModalBody, useDisclosure } from '@nextui-org/modal';
+import { Badge } from '@nextui-org/badge';
 import clsx from 'clsx';
 
 import UserSkeleton from './UserSkeleton';
@@ -18,7 +19,12 @@ interface Props {
 
 export default function InviteModal({ className, existingUserIds, onInvite }: Props) {
 	const [isLoading, setLoading] = useState(true);
-	const [users, setUsers] = useState<Database['public']['Tables']['profiles']['Row'][] | null>(null);
+	const [users, setUsers] = useState<
+		| (Database['public']['Tables']['profiles']['Row'] & {
+				user_activity: Database['public']['Tables']['user_activity']['Row'] | null;
+		  })[]
+		| null
+	>(null);
 	const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
 	useEffect(() => {
@@ -34,7 +40,7 @@ export default function InviteModal({ className, existingUserIds, onInvite }: Pr
 	async function fetchUsers() {
 		const { data } = await supabase
 			.from('profiles')
-			.select('*')
+			.select('*, user_activity!user_activity_user_id_fkey ( * )')
 			.not('id', 'in', `(${existingUserIds.join(',')})`);
 
 		setUsers(data);
@@ -45,6 +51,8 @@ export default function InviteModal({ className, existingUserIds, onInvite }: Pr
 		onInvite(userId);
 		onClose();
 	}
+
+	// <Badge content="" color="success" shape="circle" placement="bottom-right"></Badge>
 
 	return (
 		<>
@@ -72,7 +80,17 @@ export default function InviteModal({ className, existingUserIds, onInvite }: Pr
 								) : users?.length! > 0 ? (
 									users?.map((user) => (
 										<div key={user.id} className='flex items-center gap-2'>
-											<Avatar src={user.avatar_url!} />
+											{user.user_activity?.status === 'ONLINE' ? (
+												<Badge
+													color='success'
+													content=''
+													placement='bottom-right'
+													shape='circle'>
+													<Avatar src={user.avatar_url!} />
+												</Badge>
+											) : (
+												<Avatar src={user.avatar_url!} />
+											)}
 											<div className='flex flex-col justify-between'>
 												<h2 className='text-md font-medium'>{user.full_name}</h2>
 												<p className='text-[0.75rem]'>{user.username}</p>

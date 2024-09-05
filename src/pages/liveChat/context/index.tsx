@@ -15,7 +15,9 @@ export interface ChannelState extends BaseField {
 export interface MembersState extends BaseField {
 	data:
 		| (Database['public']['Tables']['channels_members']['Row'] & {
-				profiles: Database['public']['Tables']['profiles']['Row'];
+				profiles: Database['public']['Tables']['profiles']['Row'] & {
+					user_activity: Database['public']['Tables']['user_activity']['Row'];
+				};
 		  })[]
 		| null;
 }

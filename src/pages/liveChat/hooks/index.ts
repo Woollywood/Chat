@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { Location, Params } from 'react-router-dom';
 
-import { useContextActions, useContextState, ChannelState, MembersState } from '../context';
+import { useContextActions, useContextState, ChannelState } from '../context';
 import { ActionType } from '../reducer';
 
 import { supabase } from '@/supabase';
@@ -40,7 +40,7 @@ export function useMembers(location: Location, params: Readonly<Params<string>>)
 		});
 		const { data } = await supabase
 			.from('channels_members')
-			.select('*, profiles!channels_members_user_id_fkey ( * )')
+			.select('*, profiles!channels_members_user_id_fkey ( *, user_activity!user_activity_user_id_fkey ( * ) )')
 			.eq('channel_id', params.id!);
 
 		dispatch({

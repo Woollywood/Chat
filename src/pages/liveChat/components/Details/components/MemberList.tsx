@@ -1,6 +1,7 @@
 import { useSelector } from 'react-redux';
 import { Badge } from '@nextui-org/badge';
 import { Avatar } from '@nextui-org/avatar';
+import { clsx } from 'clsx';
 
 import { Database } from '@/types/supabase';
 import { DeleteIcon } from '@/components/icons';
@@ -8,7 +9,9 @@ import { RootState } from '@/store';
 
 interface Props {
 	members: (Database['public']['Tables']['channels_members']['Row'] & {
-		profiles: Database['public']['Tables']['profiles']['Row'];
+		profiles: Database['public']['Tables']['profiles']['Row'] & {
+			user_activity: Database['public']['Tables']['user_activity']['Row'];
+		};
 	})[];
 	onDelete: (userId: string) => void;
 }
@@ -29,7 +32,12 @@ export default function MemberList({ members, onDelete }: Props) {
 							<Avatar src={member?.profiles?.avatar_url!} />
 							<div className='flex flex-col justify-between'>
 								<h4 className='text-md font-medium'>{member?.profiles?.full_name}</h4>
-								<p className='text-[0.75rem]'>{member?.profiles?.status}</p>
+								<p
+									className={clsx('text-[0.75rem]', {
+										'text-green-400': member?.profiles.user_activity.status === 'ONLINE',
+									})}>
+									{member?.profiles.user_activity.status}
+								</p>
 							</div>
 						</div>
 					</Badge>
@@ -38,7 +46,12 @@ export default function MemberList({ members, onDelete }: Props) {
 						<Avatar src={member?.profiles?.avatar_url!} />
 						<div className='flex flex-col justify-between'>
 							<h4 className='text-md font-medium'>{member?.profiles?.full_name}</h4>
-							<p className='text-[0.75rem]'>{member?.profiles?.status}</p>
+							<p
+								className={clsx('text-[0.75rem]', {
+									'text-green-400': member?.profiles.user_activity.status === 'ONLINE',
+								})}>
+								{member?.profiles.user_activity.status}
+							</p>
 						</div>
 					</>
 				)}

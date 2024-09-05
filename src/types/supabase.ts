@@ -130,7 +130,6 @@ export type Database = {
           email: string
           full_name: string | null
           id: string
-          status: Database["public"]["Enums"]["user_status"] | null
           updated_at: string | null
           username: string | null
         }
@@ -140,7 +139,6 @@ export type Database = {
           email: string
           full_name?: string | null
           id: string
-          status?: Database["public"]["Enums"]["user_status"] | null
           updated_at?: string | null
           username?: string | null
         }
@@ -150,7 +148,6 @@ export type Database = {
           email?: string
           full_name?: string | null
           id?: string
-          status?: Database["public"]["Enums"]["user_status"] | null
           updated_at?: string | null
           username?: string | null
         }
@@ -181,6 +178,38 @@ export type Database = {
           role?: Database["public"]["Enums"]["app_role"]
         }
         Relationships: []
+      }
+      user_activity: {
+        Row: {
+          created_at: string
+          id: number
+          last_seen: string
+          status: Database["public"]["Enums"]["user_status"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          last_seen?: string
+          status?: Database["public"]["Enums"]["user_status"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          last_seen?: string
+          status?: Database["public"]["Enums"]["user_status"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_activity_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -219,6 +248,10 @@ export type Database = {
           user_id: string
         }
         Returns: boolean
+      }
+      update_user_status: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
     }
     Enums: {

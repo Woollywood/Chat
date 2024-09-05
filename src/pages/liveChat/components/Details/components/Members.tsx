@@ -1,15 +1,18 @@
+import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
+import { RealtimePostgresUpdatePayload } from '@supabase/supabase-js';
 
 import InviteModal from '../../InviteModal';
 import UserSkeleton from '../../UserSkeleton';
 import { ActionType } from '../../../reducer';
-import { useContextState, useContextActions } from '../../../context';
+import { useContextState, useContextActions, MembersState } from '../../../context';
 
 import MemberList from './MemberList';
 
 import { supabase } from '@/supabase';
 import { RootState } from '@/store';
+import { Database } from '@/types/supabase';
 
 export default function Members() {
 	const params = useParams();
@@ -20,6 +23,51 @@ export default function Members() {
 	const { data: members, isLoading: isMembersLoading } = membersState;
 
 	const dispatch = useContextActions()!;
+
+	function updateMembers(
+		payload: RealtimePostgresUpdatePayload<{
+			[key: string]: any;
+		}>,
+	) {
+		const updatedRow: Database['public']['Tables']['user_activity']['Row'] =
+			payload.new as Database['public']['Tables']['user_activity']['Row'];
+
+		if (updatedRow) {
+			dispatch({
+				type: ActionType.SET_MEMBERS,
+				payload: {
+					isLoading: false,
+					// @ts-ignore
+					data: members?.map((member) =>
+						member.user_id !== updatedRow.user_id
+							? member
+							: {
+									...member,
+									profiles: {
+										...member.profiles,
+										user_activity: updatedRow,
+									},
+								},
+					),
+				},
+			});
+		}
+	}
+
+	useEffect(() => {
+		const channel = supabase
+			.channel('user_activity_UPDATE')
+			.on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'user_activity' }, (payload) => {
+				if (payload?.new) {
+					updateMembers(payload);
+				}
+			})
+			.subscribe();
+
+		return () => {
+			channel.unsubscribe();
+		};
+	}, [updateMembers]);
 
 	async function handleDelete(userId: string) {
 		dispatch({
@@ -59,7 +107,7 @@ export default function Members() {
 		const { data: invitedMember } = await supabase
 			.from('channels_members')
 			.insert([{ channel_id: channel?.id!, user_id: userId, invited_by: session?.user.id! }])
-			.select('*, profiles!channels_members_user_id_fkey ( * )')
+			.select('*, profiles!channels_members_user_id_fkey ( *, user_activity!user_activity_user_id_fkey ( * ) )')
 			.single();
 
 		dispatch({
