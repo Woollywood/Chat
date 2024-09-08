@@ -1,45 +1,27 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useSelector } from 'react-redux';
+import { Spinner } from '@nextui-org/spinner';
 
-import Section from './Section';
-import Channels from './Channels';
+import Section from './components/Section';
+import Channels from './components/Channels';
 
-import { Database } from '@/types/supabase';
 import { RootState } from '@/store';
 import { PlusIcon } from '@/components/icons';
-import { ChannelApi } from '@/api/ChannelApi';
 import Avatar from '@/components/avatar';
 
 export default function Sidebar() {
 	const { profile } = useSelector((state: RootState) => state.session);
-
+	const { channels } = useSelector((state: RootState) => state.channels);
 	const [isChannelCreating, setChannelCreating] = useState(false);
-	const [isChannelsLoading, setChannelsLoading] = useState(true);
-	const [channels, setChannels] = useState<Database['public']['Tables']['channels']['Row'][] | null>(null);
 
-	useEffect(() => {
-		fetchChannels().then(() => setChannelsLoading(false));
-	}, []);
-
-	async function fetchChannels() {
-		const data = await ChannelApi.getAll();
-
-		setChannels(data);
-	}
+	const isLoading = channels?.some((channel) => channel.status === 'loading');
 
 	function toggleChannelCreating() {
 		setChannelCreating((prev) => !prev);
 	}
 
-	async function handleCreateChannel(channelName: string) {
-		await ChannelApi.create(channelName, profile!);
-		fetchChannels();
+	async function handleCreateChannel() {
 		toggleChannelCreating();
-	}
-
-	async function handleDeleteChannel(channelName: string) {
-		await ChannelApi.delete(channelName);
-		fetchChannels();
 	}
 
 	return (
@@ -51,20 +33,20 @@ export default function Sidebar() {
 			<div className='scrollbar divide-y-1 divide-foreground-300 overflow-y-auto'>
 				<Section
 					actions={
-						<button
-							className='rounded-lg p-1 transition-colors hover:bg-foreground hover:text-background'
-							onClick={toggleChannelCreating}>
-							<PlusIcon height={16} width={16} />
-						</button>
+						<>
+							{isLoading ? (
+								<Spinner size='sm' />
+							) : (
+								<button
+									className='rounded-lg p-1 transition-colors hover:bg-foreground hover:text-background'
+									onClick={toggleChannelCreating}>
+									<PlusIcon height={16} width={16} />
+								</button>
+							)}
+						</>
 					}
 					title='Channels'>
-					<Channels
-						channels={channels!}
-						isCreating={isChannelCreating}
-						isLoading={isChannelsLoading}
-						onCreated={handleCreateChannel}
-						onDeleted={handleDeleteChannel}
-					/>
+					<Channels isCreating={isChannelCreating} onCreated={handleCreateChannel} />
 				</Section>
 			</div>
 		</aside>
