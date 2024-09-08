@@ -3,13 +3,14 @@ import { Skeleton } from '@nextui-org/skeleton';
 import { useContextState } from '../../context';
 
 import Members from './components/Members';
+import Footer from './components/Footer';
 
 export default function Details() {
 	const { channel: channelState } = useContextState();
 	const { data: channel, isLoading: isChannelLoading } = channelState;
 
 	return (
-		<div className='grid grid-rows-[auto_auto_1fr] divide-y-1 divide-foreground-300 overflow-hidden'>
+		<div className='grid grid-rows-[auto_auto_1fr_auto] divide-y-1 divide-foreground-300 overflow-hidden'>
 			<div className='flex h-28 items-center justify-center px-12 py-6'>
 				<h2 className='text-2xl font-medium'>Detail Channels</h2>
 			</div>
@@ -24,6 +25,7 @@ export default function Details() {
 				)}
 			</div>
 			<Members />
+			<Footer />
 		</div>
 	);
 }

@@ -68,7 +68,7 @@ export class ChannelApi {
 	}
 
 	static async delete(channelName: string) {
-		const { data } = await supabase.from('channels').delete().eq('slug', channelName);
+		const { data } = await supabase.from('channels').delete().eq('slug', channelName).select().single();
 
 		return data;
 	}
@@ -101,6 +101,12 @@ export class ChannelApi {
 			.insert([{ channel_id: channel?.id!, user_id: userId, invited_by: session?.user.id! }])
 			.select('*, profiles!channels_members_user_id_fkey ( *, user_activity!user_activity_user_id_fkey ( * ) )')
 			.single();
+
+		return data;
+	}
+
+	static async leave(id: number) {
+		const { data } = await supabase.from('channels_members').delete().eq('channel_id', id).select().single();
 
 		return data;
 	}
