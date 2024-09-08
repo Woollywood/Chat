@@ -1,16 +1,24 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 
 import { Database } from '@/types/supabase';
 import { ChannelApi } from '@/api/ChannelApi';
 
-type Status = 'successful' | 'loading';
-type LoadingChannel = {
+export type Status = 'successful' | 'loading';
+export type LoadingChannel = {
 	id: number;
 	slug: string;
 };
+export type SuccessfulChannel = Database['public']['Tables']['channels']['Row'] & {
+	channels_members: Database['public']['Tables']['channels_members']['Row'][];
+};
 
 interface InitialState {
-	channels: { data: Database['public']['Tables']['channels']['Row'] | LoadingChannel; status: Status }[] | null;
+	channels:
+		| {
+				data: SuccessfulChannel | LoadingChannel;
+				status: Status;
+		  }[]
+		| null;
 }
 
 const initialState: InitialState = {
@@ -19,6 +27,10 @@ const initialState: InitialState = {
 
 export const getChannels = createAsyncThunk('@@channels/get', async () => {
 	return await ChannelApi.getAll();
+});
+
+export const getChannel = createAsyncThunk('@channels/get/current', async ({ id }: { id: string }) => {
+	return await ChannelApi.getFromId(id);
 });
 
 export const createChannel = createAsyncThunk(
@@ -39,7 +51,11 @@ export const leaveChannel = createAsyncThunk('@@channels/leave', async (id: numb
 const slice = createSlice({
 	name: 'channels',
 	initialState,
-	reducers: {},
+	reducers: {
+		exclusionFromChannel: (state, { payload }: PayloadAction<number>) => ({
+			channels: state.channels?.filter((channel) => channel.data.id !== payload)!,
+		}),
+	},
 	extraReducers: (builder) => {
 		builder
 			.addCase(getChannels.fulfilled, (state, { payload }) => {
@@ -79,8 +95,12 @@ const slice = createSlice({
 			}))
 			.addCase(leaveChannel.fulfilled, (state, { payload }) => ({
 				channels: state.channels?.filter((channel) => channel.data.id !== payload?.channel_id)!,
+			}))
+			.addCase(getChannel.fulfilled, (state, { payload }) => ({
+				channels: state.channels?.concat([{ status: 'successful', data: payload! }])!,
 			}));
 	},
 });
 
+export const { exclusionFromChannel } = slice.actions;
 export const reducer = slice.reducer;

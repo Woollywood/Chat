@@ -1,4 +1,9 @@
-import { RealtimeChannel, RealtimePostgresUpdatePayload, Session } from '@supabase/supabase-js';
+import {
+	RealtimeChannel,
+	RealtimePostgresChangesPayload,
+	RealtimePostgresUpdatePayload,
+	Session,
+} from '@supabase/supabase-js';
 
 import { supabase } from '@/supabase';
 import { Database } from '@/types/supabase';
@@ -36,19 +41,51 @@ export class ChannelSocket {
 	}
 }
 
+export class MembersSocket {
+	private socket: RealtimeChannel | null = null;
+
+	connect(
+		callback: (
+			payload: RealtimePostgresChangesPayload<{
+				[key: string]: any;
+			}>,
+		) => void,
+	) {
+		if (this.socket) {
+			this.socket.unsubscribe();
+			this.socket = null;
+		}
+
+		this.socket = supabase
+			.channel('members_ALL')
+			.on('postgres_changes', { event: '*', schema: 'public', table: 'channels_members' }, (payload) => {
+				callback(payload);
+			})
+			.subscribe();
+	}
+
+	disconnect() {
+		if (this.socket) {
+			this.socket?.unsubscribe();
+			this.socket = null;
+		}
+	}
+}
+
 export class ChannelApi {
 	private static channelSocketInstance: ChannelSocket | null = null;
+	private static membersSocketInstance: MembersSocket | null = null;
 
 	private constructor() {}
 
 	static async getAll() {
-		const { data } = await supabase.from('channels').select('*');
+		const { data } = await supabase.from('channels').select('*, channels_members ( * )');
 
 		return data;
 	}
 
 	static async getFromId(id: string) {
-		const { data } = await supabase.from('channels').select('*').eq('id', id).single();
+		const { data } = await supabase.from('channels').select('*, channels_members ( * )').eq('id', id).single();
 
 		return data;
 	}
@@ -117,5 +154,13 @@ export class ChannelApi {
 		}
 
 		return this.channelSocketInstance;
+	}
+
+	static getMembersSocketInstance() {
+		if (!this.membersSocketInstance) {
+			this.membersSocketInstance = new MembersSocket();
+		}
+
+		return this.membersSocketInstance;
 	}
 }

@@ -4,12 +4,15 @@ import { Spinner } from '@nextui-org/spinner';
 
 import Section from './components/Section';
 import Channels from './components/Channels';
+import { useSocket } from './hooks';
 
 import { RootState } from '@/store';
 import { PlusIcon } from '@/components/icons';
 import Avatar from '@/components/avatar';
 
 export default function Sidebar() {
+	useSocket();
+
 	const { profile } = useSelector((state: RootState) => state.session);
 	const { channels } = useSelector((state: RootState) => state.channels);
 	const [isChannelCreating, setChannelCreating] = useState(false);
