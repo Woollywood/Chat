@@ -1,13 +1,16 @@
+import { useSelector } from 'react-redux';
 import { Skeleton } from '@nextui-org/skeleton';
 
-import { useContextState } from '../../context';
+import { useLiveChatContext } from '../../context';
 
 import Members from './components/Members';
 import Footer from './components/Footer';
 
+import { RootState } from '@/store';
+
 export default function Details() {
-	const { channel: channelState } = useContextState();
-	const { data: channel, isLoading: isChannelLoading } = channelState;
+	const { isLoading } = useLiveChatContext();
+	const { channel } = useSelector((state: RootState) => state.channel);
 
 	return (
 		<div className='grid grid-rows-[auto_auto_1fr_auto] divide-y-1 divide-foreground-300 overflow-hidden'>
@@ -16,7 +19,7 @@ export default function Details() {
 			</div>
 			<div className='px-6 py-12'>
 				<h3 className='mb-4 text-xl font-semibold uppercase text-gray-500'>Name channel</h3>
-				{isChannelLoading ? (
+				{isLoading ? (
 					<div className='h-auto'>
 						<Skeleton className='flex h-6 w-full rounded-full' />
 					</div>

@@ -1,58 +1,23 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { useDispatch } from 'react-redux';
 import { Location, Params } from 'react-router-dom';
 
-import { useContextActions, useContextState, ChannelState } from '../context';
-import { ActionType } from '../reducer';
-
-import { ChannelApi } from '@/api/ChannelApi';
+import { getChannel } from '@/stores/channel';
+import { AppDispatch } from '@/store';
 
 export function useChannel(location: Location, params: Readonly<Params<string>>) {
-	const { channel: channelState } = useContextState();
-	const { data, isLoading } = channelState;
-	const dispatch = useContextActions()!;
+	const [isLoading, setLoading] = useState(true);
+	const dispatch = useDispatch<AppDispatch>();
 
 	async function fetchChannel() {
-		dispatch({ type: ActionType.SET_CHANNEL, payload: { isLoading: true, data: null } as unknown as ChannelState });
-		const data = await ChannelApi.getFromId(params.id!);
-
-		dispatch({ type: ActionType.SET_CHANNEL, payload: { isLoading: false, data } });
+		setLoading(true);
+		await dispatch(getChannel({ id: params.id! }));
+		setLoading(false);
 	}
 
 	useEffect(() => {
 		fetchChannel();
 	}, [location]);
 
-	return { isLoading, data };
-}
-
-export function useMembers(location: Location, params: Readonly<Params<string>>) {
-	const { members: membersState } = useContextState();
-	const { isLoading, data } = membersState;
-	const dispatch = useContextActions()!;
-
-	async function fetchChannelMembers() {
-		dispatch({
-			type: ActionType.SET_MEMBERS,
-			payload: {
-				isLoading: true,
-				data: null,
-			},
-		});
-		const data = await ChannelApi.getChannelMembers(params.id!);
-
-		dispatch({
-			type: ActionType.SET_MEMBERS,
-			payload: {
-				isLoading: false,
-				// @ts-ignore
-				data,
-			},
-		});
-	}
-
-	useEffect(() => {
-		fetchChannelMembers();
-	}, [location]);
-
-	return { isLoading, data };
+	return { isLoading };
 }

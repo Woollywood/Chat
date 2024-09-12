@@ -55,6 +55,26 @@ const slice = createSlice({
 		exclusionFromChannel: (state, { payload }: PayloadAction<number>) => ({
 			channels: state.channels?.filter((channel) => channel.data.id !== payload)!,
 		}),
+		insertMember: (state, { payload }: PayloadAction<Database['public']['Tables']['channels_members']['Row']>) => ({
+			channels: state.channels?.map((channel) => ({
+				...channel,
+				data: {
+					...channel.data,
+					channels_members: [...(channel.data as SuccessfulChannel).channels_members, payload],
+				},
+			}))!,
+		}),
+		deleteMember: (state, { payload }: PayloadAction<number>) => ({
+			channels: state.channels?.map((channel) => ({
+				...channel,
+				data: {
+					...channel.data,
+					channels_members: (channel.data as SuccessfulChannel).channels_members.filter(
+						(member) => member.id !== payload,
+					),
+				},
+			}))!,
+		}),
 	},
 	extraReducers: (builder) => {
 		builder
@@ -102,5 +122,5 @@ const slice = createSlice({
 	},
 });
 
-export const { exclusionFromChannel } = slice.actions;
+export const { exclusionFromChannel, insertMember, deleteMember } = slice.actions;
 export const reducer = slice.reducer;

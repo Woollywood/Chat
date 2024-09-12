@@ -1,16 +1,17 @@
+import { useSelector } from 'react-redux';
 import { Skeleton } from '@nextui-org/skeleton';
 import { AvatarGroup } from '@nextui-org/avatar';
 
-import { useContextState } from '../context';
+import { useLiveChatContext } from '../context';
 
 import Avatar from '@/components/avatar';
+import { RootState } from '@/store';
 
 export default function Header() {
-	const { channel: channelState, members: membersState } = useContextState();
-	const { data: channel, isLoading } = channelState;
-	const { data: members } = membersState;
+	const { isLoading } = useLiveChatContext();
+	const { channel, members } = useSelector((state: RootState) => state.channel);
 
-	const onlineCount = members?.filter((member) => member.profiles.user_activity.status === 'ONLINE').length;
+	const onlineCount = members?.filter((member) => member.profiles?.user_activity?.status === 'ONLINE').length;
 
 	return (
 		<div className='grid grid-rows-[auto_1fr] divide-y-1 divide-foreground-300'>

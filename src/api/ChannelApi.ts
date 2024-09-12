@@ -1,81 +1,9 @@
-import {
-	RealtimeChannel,
-	RealtimePostgresChangesPayload,
-	RealtimePostgresUpdatePayload,
-	Session,
-} from '@supabase/supabase-js';
+import { Session } from '@supabase/supabase-js';
 
 import { supabase } from '@/supabase';
 import { Database } from '@/types/supabase';
 
-export class ChannelSocket {
-	private socket: RealtimeChannel | null = null;
-
-	connect(
-		callback: (
-			payload: RealtimePostgresUpdatePayload<{
-				[key: string]: any;
-			}>,
-		) => void,
-	) {
-		if (this.socket) {
-			this.socket.unsubscribe();
-			this.socket = null;
-		}
-
-		this.socket = supabase
-			.channel('user_activity_UPDATE')
-			.on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'user_activity' }, (payload) => {
-				if (payload?.new) {
-					callback(payload);
-				}
-			})
-			.subscribe();
-	}
-
-	disconnect() {
-		if (this.socket) {
-			this.socket?.unsubscribe();
-			this.socket = null;
-		}
-	}
-}
-
-export class MembersSocket {
-	private socket: RealtimeChannel | null = null;
-
-	connect(
-		callback: (
-			payload: RealtimePostgresChangesPayload<{
-				[key: string]: any;
-			}>,
-		) => void,
-	) {
-		if (this.socket) {
-			this.socket.unsubscribe();
-			this.socket = null;
-		}
-
-		this.socket = supabase
-			.channel('members_ALL')
-			.on('postgres_changes', { event: '*', schema: 'public', table: 'channels_members' }, (payload) => {
-				callback(payload);
-			})
-			.subscribe();
-	}
-
-	disconnect() {
-		if (this.socket) {
-			this.socket?.unsubscribe();
-			this.socket = null;
-		}
-	}
-}
-
 export class ChannelApi {
-	private static channelSocketInstance: ChannelSocket | null = null;
-	private static membersSocketInstance: MembersSocket | null = null;
-
 	private constructor() {}
 
 	static async getAll() {
@@ -86,6 +14,26 @@ export class ChannelApi {
 
 	static async getFromId(id: string) {
 		const { data } = await supabase.from('channels').select('*, channels_members ( * )').eq('id', id).single();
+
+		return data;
+	}
+
+	static async getMembersFromId(id: string) {
+		const { data } = await supabase
+			.from('channels_members')
+			.select('*, profiles ( *, user_activity ( * ) )')
+			.eq('channel_id', id);
+
+		return data;
+	}
+
+	static async getMemberFromId({ userId, channelId }: { userId: string; channelId: string }) {
+		const { data } = await supabase
+			.from('channels_members')
+			.select('*, profiles!channels_members_user_id_fkey ( *, user_activity ( * ) )')
+			.eq('user_id', userId)
+			.eq('channel_id', channelId)
+			.single();
 
 		return data;
 	}
@@ -142,25 +90,21 @@ export class ChannelApi {
 		return data;
 	}
 
-	static async leave(id: number) {
-		const { data } = await supabase.from('channels_members').delete().eq('channel_id', id).select().single();
+	static async deleteUser({ userId, channelId }: { userId: string; channelId: string }) {
+		const { data } = await supabase
+			.from('channels_members')
+			.delete()
+			.eq('user_id', userId)
+			.eq('channel_id', channelId)
+			.select('*, profiles!channels_members_user_id_fkey ( * )')
+			.single();
 
 		return data;
 	}
 
-	static getChannelSocketInstance() {
-		if (!this.channelSocketInstance) {
-			this.channelSocketInstance = new ChannelSocket();
-		}
+	static async leave(id: number) {
+		const { data } = await supabase.from('channels_members').delete().eq('channel_id', id).select().single();
 
-		return this.channelSocketInstance;
-	}
-
-	static getMembersSocketInstance() {
-		if (!this.membersSocketInstance) {
-			this.membersSocketInstance = new MembersSocket();
-		}
-
-		return this.membersSocketInstance;
+		return data;
 	}
 }

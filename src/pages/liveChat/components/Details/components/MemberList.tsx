@@ -3,16 +3,12 @@ import { Badge } from '@nextui-org/badge';
 import { clsx } from 'clsx';
 
 import Avatar from '@/components/avatar';
-import { Database } from '@/types/supabase';
 import { DeleteIcon } from '@/components/icons';
 import { RootState } from '@/store';
+import { ChannelApi } from '@/api/ChannelApi';
 
 interface Props {
-	members: (Database['public']['Tables']['channels_members']['Row'] & {
-		profiles: Database['public']['Tables']['profiles']['Row'] & {
-			user_activity: Database['public']['Tables']['user_activity']['Row'];
-		};
-	})[];
+	members: Awaited<ReturnType<typeof ChannelApi.getChannelMembers>>;
 	onDelete: (userId: string) => void;
 }
 
@@ -21,7 +17,7 @@ export default function MemberList({ members, onDelete }: Props) {
 	const creator = members?.find((member) => member.user_id === member.invited_by);
 	const isCreator = creator?.user_id === session?.user.id;
 
-	const filteredList = [creator, ...members.filter((member) => member.user_id !== creator?.user_id)];
+	const filteredList = [creator, ...members?.filter((member) => member.user_id !== creator?.user_id)!];
 
 	return filteredList?.map((member) => (
 		<div key={member?.id}>
@@ -34,9 +30,9 @@ export default function MemberList({ members, onDelete }: Props) {
 								<h4 className='text-md font-medium'>{member?.profiles?.full_name}</h4>
 								<p
 									className={clsx('text-[0.75rem]', {
-										'text-green-400': member?.profiles.user_activity.status === 'ONLINE',
+										'text-green-400': member?.profiles?.user_activity?.status === 'ONLINE',
 									})}>
-									{member?.profiles.user_activity.status}
+									{member?.profiles?.user_activity?.status}
 								</p>
 							</div>
 						</div>
@@ -48,9 +44,9 @@ export default function MemberList({ members, onDelete }: Props) {
 							<h4 className='text-md font-medium'>{member?.profiles?.full_name}</h4>
 							<p
 								className={clsx('text-[0.75rem]', {
-									'text-green-400': member?.profiles.user_activity.status === 'ONLINE',
+									'text-green-400': member?.profiles?.user_activity?.status === 'ONLINE',
 								})}>
-								{member?.profiles.user_activity.status}
+								{member?.profiles?.user_activity?.status}
 							</p>
 						</div>
 					</>

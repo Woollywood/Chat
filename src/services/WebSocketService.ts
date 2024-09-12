@@ -18,10 +18,6 @@ interface ChannelType {
 class _WebSocketService {
 	private mapChannels: Map<string, ChannelType[]> = new Map();
 
-	constructor() {
-		console.log('new websocket service');
-	}
-
 	subscribe<T extends { [key: string]: any }>({
 		name,
 		table,
@@ -44,7 +40,9 @@ class _WebSocketService {
 				const mapChannel = this.mapChannels.get(name)!;
 
 				if (mapChannel.find((channel) => channel.eventType === eventType)) {
-					throw new Error(`The channel ${this.getChannelName({ name, eventType })} is already busy`);
+					throw new Error(
+						`The channel ${this.getChannelName({ name, eventType })} is already busy. Unsubscribe first`,
+					);
 				}
 
 				const channel = supabase.channel(this.getChannelName({ name, eventType }));
@@ -54,7 +52,7 @@ class _WebSocketService {
 				handler(channel, callback);
 				channel.subscribe();
 
-				console.log(`${this.getChannelName({ name, eventType })} on table ${table} subscribed`);
+				// console.log(`${this.getChannelName({ name, eventType })} on table ${table} subscribed`);
 			};
 		};
 
@@ -104,7 +102,7 @@ class _WebSocketService {
 
 			if (channel) {
 				channel.channel.unsubscribe();
-				console.log(`${this.getChannelName({ name, eventType })} unsubscribed`);
+				// console.log(`${this.getChannelName({ name, eventType })} unsubscribed`);
 
 				if (mapChannel?.length! > 1) {
 					this.mapChannels.set(name, mapChannel?.filter((channel) => channel.eventType !== eventType)!);
@@ -120,7 +118,7 @@ class _WebSocketService {
 			const mapChannel = this.mapChannels.get(name)!;
 
 			for (const { channel, eventType } of mapChannel) {
-				console.log(`${this.getChannelName({ name, eventType })} unsubscribed`);
+				// console.log(`${this.getChannelName({ name, eventType })} unsubscribed`);
 
 				channel.unsubscribe();
 			}
