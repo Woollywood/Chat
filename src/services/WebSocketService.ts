@@ -10,6 +10,8 @@ import {
 import { supabase } from '@/supabase';
 import { Database } from '@/types/supabase';
 
+import { isNil } from 'lodash-es';
+
 type ChannelType = {
 	eventType: REALTIME_POSTGRES_CHANGES_LISTEN_EVENT;
 	channel: RealtimeChannel;
@@ -19,16 +21,18 @@ class _WebSocketService {
 	private mapChannels: Map<string, ChannelType[]> = new Map();
 
 	subscribe<T extends { [key: string]: any }>({
+		prefix,
 		name,
 		table,
 		filter,
 	}: {
+		prefix?: string;
 		name: string;
 		table: keyof Database['public']['Tables'];
 		filter?: string;
 	}) {
-		if (!this.mapChannels.has(name)) {
-			this.mapChannels.set(name, []);
+		if (!this.mapChannels.has(this.getMapChannelName({ prefix, name }))) {
+			this.mapChannels.set(this.getMapChannelName({ prefix, name }), []);
 		}
 
 		const withSubscription = <P>({
@@ -49,17 +53,19 @@ class _WebSocketService {
 			filter?: string;
 		}) => {
 			return (callback: (payload: P) => void) => {
-				const mapChannel = this.mapChannels.get(name)!;
+				const mapChannel = this.mapChannels.get(this.getMapChannelName({ prefix, name }))!;
 
 				if (mapChannel.find((channel) => channel.eventType === eventType)) {
 					throw new Error(
-						`The channel ${this.getChannelName({ name, eventType })} is already busy. Unsubscribe first`,
+						`The channel ${this.getMapChannelItemName({ name: this.getMapChannelName({ prefix, name }), eventType })} is already busy. Unsubscribe first`,
 					);
 				}
 
-				const channel = supabase.channel(this.getChannelName({ name, eventType }));
+				const channel = supabase.channel(
+					this.getMapChannelItemName({ name: this.getMapChannelName({ prefix, name }), eventType }),
+				);
 
-				this.mapChannels.set(name, [...mapChannel, { eventType, channel }]);
+				this.mapChannels.set(this.getMapChannelName({ prefix, name }), [...mapChannel, { eventType, channel }]);
 
 				handler({ channel, filter, callback });
 				channel.subscribe();
@@ -109,39 +115,59 @@ class _WebSocketService {
 		return { all, insert, update, del };
 	}
 
-	unsubscribe({ name, eventType }: { name: string; eventType: REALTIME_POSTGRES_CHANGES_LISTEN_EVENT }) {
-		if (this.mapChannels.has(name)) {
-			const mapChannel = this.mapChannels.get(name);
+	unsubscribe({
+		prefix,
+		name,
+		eventType,
+	}: {
+		prefix?: string;
+		name: string;
+		eventType: REALTIME_POSTGRES_CHANGES_LISTEN_EVENT;
+	}) {
+		if (this.mapChannels.has(this.getMapChannelName({ prefix, name }))) {
+			const mapChannel = this.mapChannels.get(this.getMapChannelName({ prefix, name }));
 			const channel = mapChannel?.find((channel) => channel.eventType === eventType);
 
 			if (channel) {
 				channel.channel.unsubscribe();
 
 				if (mapChannel?.length! > 1) {
-					this.mapChannels.set(name, mapChannel?.filter((channel) => channel.eventType !== eventType)!);
+					this.mapChannels.set(
+						this.getMapChannelName({ prefix, name }),
+						mapChannel?.filter((channel) => channel.eventType !== eventType)!,
+					);
 				} else {
-					this.mapChannels.delete(name);
+					this.mapChannels.delete(this.getMapChannelName({ prefix, name }));
 				}
 			}
 		}
 	}
 
-	unsubscribeAll({ name }: { name: string }) {
-		if (this.mapChannels.has(name)) {
-			const mapChannel = this.mapChannels.get(name)!;
+	unsubscribeAll({ prefix, name }: { prefix?: string; name: string }) {
+		if (this.mapChannels.has(this.getMapChannelName({ prefix, name }))) {
+			const mapChannel = this.mapChannels.get(this.getMapChannelName({ prefix, name }))!;
 
 			for (const { channel } of mapChannel) {
 				channel.unsubscribe();
 			}
 
-			this.mapChannels.delete(name);
+			this.mapChannels.delete(this.getMapChannelName({ prefix, name }));
 		}
 	}
 
-	private getChannelName({ name, eventType }: { name: string; eventType: REALTIME_POSTGRES_CHANGES_LISTEN_EVENT }) {
+	private getMapChannelName({ prefix, name }: { prefix?: string; name: string }) {
+		return isNil(prefix) ? name : `${prefix}_${name}`;
+	}
+
+	private getMapChannelItemName({
+		name,
+		eventType,
+	}: {
+		name: string;
+		eventType: REALTIME_POSTGRES_CHANGES_LISTEN_EVENT;
+	}) {
 		return `${name}_${eventType}`;
 	}
 }
 
 export const WebSocketService = new _WebSocketService();
-window.WebSocketService = WebSocketService;

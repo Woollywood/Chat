@@ -8,7 +8,7 @@ export {
 	leaveChannel as leaveChannelAction,
 } from './actions';
 
-export type { RelatedChannels } from './types';
+export type { StoreChannel } from './types';
 
 export const { deleteChannel, insertMember, deleteMember } = slice.actions;
 export const reducer = slice.reducer;

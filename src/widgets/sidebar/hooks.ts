@@ -9,7 +9,6 @@ import {
 	deleteChannel,
 	insertMember,
 	deleteMember as deleteMemberFromChannels,
-	RelatedChannels,
 } from '@/stores/channels';
 import { insertUserFromId, deleteMember as deleteMemberFromCurrentChannel } from '@/stores/channel';
 import { Database } from '@/types/supabase';
@@ -54,8 +53,8 @@ export function useSocket() {
 		}
 	}
 
-	function wsDeleteChannel(channel: RelatedChannels) {
-		dispatch(deleteChannel(channel.id));
+	function wsDeleteChannel(id: number) {
+		dispatch(deleteChannel(id));
 	}
 	function wsDeleteMember(member: Database['public']['Tables']['channels_members']['Row']) {
 		if (member.channel_id === channel?.id) {
@@ -67,7 +66,7 @@ export function useSocket() {
 		payload: RealtimePostgresInsertPayload<Database['public']['Tables']['deleted_channels_members']['Row']>,
 	) {
 		if (payload.new.user_id === profile?.id) {
-			wsDeleteChannel(payload.new);
+			wsDeleteChannel(payload.new.channel_id);
 		} else {
 			wsDeleteMember(payload.new);
 		}
@@ -78,19 +77,21 @@ export function useSocket() {
 		const filter = channelIds?.length! > 0 ? `channel_id=in.(${channelIds?.join(',')})` : undefined;
 
 		WebSocketService.subscribe<Database['public']['Tables']['channels_members']['Row']>({
-			name: 'live-chat-members',
+			prefix: 'insert_members',
+			name: 'channels',
 			table: 'channels_members',
 			filter,
 		}).insert(wsInsertMember);
 		WebSocketService.subscribe<Database['public']['Tables']['deleted_channels_members']['Row']>({
-			name: 'live-chat-members-deleted',
+			prefix: 'delete_current_channel_or_members',
+			name: 'channels',
 			table: 'deleted_channels_members',
 			filter,
 		}).insert(wsDel);
 
 		return () => {
-			WebSocketService.unsubscribeAll({ name: 'live-chat-members' });
-			WebSocketService.unsubscribeAll({ name: 'live-chat-members-deleted' });
+			WebSocketService.unsubscribeAll({ prefix: 'insert_members', name: 'channels' });
+			WebSocketService.unsubscribeAll({ prefix: 'delete_current_channel_or_members', name: 'channels' });
 		};
 	}, [wsInsertMember, wsDel]);
 
@@ -98,13 +99,14 @@ export function useSocket() {
 		const filter = profile?.id ? `user_id=eq.${profile.id}` : undefined;
 
 		WebSocketService.subscribe<Database['public']['Tables']['channels_members']['Row']>({
-			name: 'live-chat-members-for-current-user',
+			prefix: 'current_user',
+			name: 'channels',
 			table: 'channels_members',
 			filter,
 		}).insert(wsInsertChannel);
 
 		return () => {
-			WebSocketService.unsubscribeAll({ name: 'live-chat-members-for-current-user' });
+			WebSocketService.unsubscribeAll({ prefix: 'current_user', name: 'channels' });
 		};
 	}, [wsInsertChannel]);
 }
