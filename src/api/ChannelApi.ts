@@ -8,9 +8,8 @@ export class ChannelApi {
 
 	static async getAll() {
 		const { data } = await supabase.from('channels').select('*, channels_members ( * )');
-		const channels = data?.map(({ channels_members, ...rest }) => rest);
 
-		return { channels, data };
+		return data;
 	}
 
 	static async getFromId(id: string) {
