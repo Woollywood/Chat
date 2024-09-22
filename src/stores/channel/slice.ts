@@ -6,7 +6,6 @@ import { getChannel, inviteUser, deleteUser, insertUserFromId } from './actions'
 import { Database } from '@/types/supabase';
 
 const initialState: InitialState = {
-	isLoading: true,
 	channel: null,
 	members: null,
 };
@@ -31,19 +30,15 @@ export const slice = createSlice({
 					: member,
 			)!;
 		},
-		exclusionMember: (state, { payload }: PayloadAction<number>) => {
+		deleteMember: (state, { payload }: PayloadAction<number>) => {
 			state.members = state.members?.filter((member) => member.id !== payload)!;
 		},
 	},
 	extraReducers: (builder) => {
 		builder
-			.addCase(getChannel.pending, (state) => {
-				state.isLoading = true;
-			})
 			.addCase(getChannel.fulfilled, (state, { payload }) => {
 				const { channel, members } = payload;
 
-				state.isLoading = false;
 				state.channel = channel;
 				state.members = members;
 			})

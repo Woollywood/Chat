@@ -86,25 +86,25 @@ export type Database = {
       }
       deleted_channels_members: {
         Row: {
-          channel_id: number | null
-          created_at: string | null
-          id: number | null
-          invited_by: string | null
-          user_id: string | null
+          channel_id: number
+          created_at: string
+          id: number
+          invited_by: string
+          user_id: string
         }
         Insert: {
-          channel_id?: number | null
-          created_at?: string | null
-          id?: number | null
-          invited_by?: string | null
-          user_id?: string | null
+          channel_id: number
+          created_at: string
+          id: number
+          invited_by: string
+          user_id: string
         }
         Update: {
-          channel_id?: number | null
-          created_at?: string | null
-          id?: number | null
-          invited_by?: string | null
-          user_id?: string | null
+          channel_id?: number
+          created_at?: string
+          id?: number
+          invited_by?: string
+          user_id?: string
         }
         Relationships: []
       }
