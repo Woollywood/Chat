@@ -1,14 +1,17 @@
+import { useSelector } from 'react-redux';
 import { Skeleton } from '@nextui-org/skeleton';
-import { Avatar, AvatarGroup } from '@nextui-org/avatar';
+import { AvatarGroup } from '@nextui-org/avatar';
 
-import { useContextState } from '../context';
+import { useLiveChatContext } from '../context';
+
+import Avatar from '@/components/avatar';
+import { RootState } from '@/store';
 
 export default function Header() {
-	const { channel: channelState, members: membersState } = useContextState();
-	const { data: channel, isLoading } = channelState;
-	const { data: members } = membersState;
+	const { isLoading } = useLiveChatContext();
+	const { channel, members } = useSelector((state: RootState) => state.channel);
 
-	const onlineCount = members?.filter((member) => member.profiles.user_activity.status === 'ONLINE').length;
+	const onlineCount = members?.filter((member) => member.profiles?.user_activity?.status === 'ONLINE').length;
 
 	return (
 		<div className='grid grid-rows-[auto_1fr] divide-y-1 divide-foreground-300'>
@@ -17,12 +20,18 @@ export default function Header() {
 					<div className='h-auto'>
 						<Skeleton className='flex h-6 w-64 rounded-full' />
 					</div>
-					<AvatarGroup isBordered>
-						<Avatar size='sm' />
-						<Avatar size='sm' />
-						<Avatar size='sm' />
-						<Avatar size='sm' />
-					</AvatarGroup>
+					<div className='flex h-auto items-center gap-4'>
+						<div className='flex items-center'>
+							<Skeleton className='flex h-10 w-10 rounded-full' />
+							<Skeleton className='-ml-2 flex h-10 w-10 rounded-full' />
+							<Skeleton className='-ml-2 flex h-10 w-10 rounded-full' />
+							<Skeleton className='-ml-2 flex h-10 w-10 rounded-full' />
+						</div>
+						<div className='flex items-center gap-2'>
+							<Skeleton className='flex h-6 w-24 rounded-full' />
+							<Skeleton className='flex h-6 w-12 rounded-full' />
+						</div>
+					</div>
 				</div>
 			) : (
 				<div className='h-28 px-6 py-2 pb-4'>

@@ -4,7 +4,7 @@ import { RouterProvider } from 'react-router-dom';
 import { Spinner } from '@nextui-org/spinner';
 
 import { router } from './router';
-import { UserServiceFabric } from './services/UserService';
+import { UserActivityService } from './services/UserService';
 
 import { useTheme } from '@/hooks/use-theme';
 import { AppDispatch, RootState } from '@/store';
@@ -17,13 +17,10 @@ function App() {
 	const dispatch = useDispatch<AppDispatch>();
 
 	useEffect(() => {
-		const UserActivityService = UserServiceFabric.getUserActivity();
-
 		supabase.auth.onAuthStateChange((_event, session) => {
 			if (session) {
 				dispatch(getUserProfileFromSession(session));
-				UserActivityService.userId = session.user.id;
-				UserActivityService.init();
+				UserActivityService.init(session);
 			} else {
 				dispatch(resetSession());
 			}

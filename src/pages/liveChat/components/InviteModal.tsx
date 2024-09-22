@@ -6,7 +6,7 @@ import clsx from 'clsx';
 
 import UserSkeleton from './UserSkeleton';
 
-import { supabase } from '@/supabase';
+import { ChannelApi } from '@/api/ChannelApi';
 import { PlusIcon } from '@/components/icons';
 import { Database } from '@/types/supabase';
 import Avatar from '@/components/avatar';
@@ -38,10 +38,7 @@ export default function InviteModal({ className, existingUserIds, onInvite }: Pr
 	}
 
 	async function fetchUsers() {
-		const { data } = await supabase
-			.from('profiles')
-			.select('*, user_activity!user_activity_user_id_fkey ( * )')
-			.not('id', 'in', `(${existingUserIds.join(',')})`);
+		const data = await ChannelApi.getExcludedMembers(existingUserIds);
 
 		setUsers(data);
 		setLoading(false);
@@ -51,8 +48,6 @@ export default function InviteModal({ className, existingUserIds, onInvite }: Pr
 		onInvite(userId);
 		onClose();
 	}
-
-	// <Badge content="" color="success" shape="circle" placement="bottom-right"></Badge>
 
 	return (
 		<>

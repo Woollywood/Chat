@@ -1,53 +1,26 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useSelector } from 'react-redux';
-import { Avatar } from '@nextui-org/avatar';
 
-import Section from './Section';
-import Channels from './Channels';
+import Section from './components/Section';
+import Channels from './components/Channels';
+import { useSocket } from './hooks';
 
-import { Database } from '@/types/supabase';
 import { RootState } from '@/store';
 import { PlusIcon } from '@/components/icons';
-import { supabase } from '@/supabase';
+import Avatar from '@/components/avatar';
 
 export default function Sidebar() {
 	const { profile } = useSelector((state: RootState) => state.session);
-
 	const [isChannelCreating, setChannelCreating] = useState(false);
-	const [isChannelsLoading, setChannelsLoading] = useState(true);
-	const [channels, setChannels] = useState<Database['public']['Tables']['channels']['Row'][] | null>(null);
 
-	useEffect(() => {
-		fetchChannels().then(() => setChannelsLoading(false));
-	}, []);
-
-	async function fetchChannels() {
-		const { data } = await supabase.from('channels').select('*');
-
-		setChannels(data);
-	}
+	useSocket();
 
 	function toggleChannelCreating() {
 		setChannelCreating((prev) => !prev);
 	}
 
-	async function handleCreateChannel(channelName: string) {
-		const { data } = await supabase
-			.from('channels')
-			.insert([{ slug: channelName, created_by: profile?.id! }])
-			.select()
-			.single();
-
-		await supabase
-			.from('channels_members')
-			.insert([{ user_id: profile?.id!, channel_id: data?.id!, invited_by: profile?.id! }]);
-		fetchChannels();
+	async function handleCreateChannel() {
 		toggleChannelCreating();
-	}
-
-	async function handleDeleteChannel(channelName: string) {
-		await supabase.from('channels').delete().eq('slug', channelName);
-		fetchChannels();
 	}
 
 	return (
@@ -66,13 +39,7 @@ export default function Sidebar() {
 						</button>
 					}
 					title='Channels'>
-					<Channels
-						channels={channels!}
-						isCreating={isChannelCreating}
-						isLoading={isChannelsLoading}
-						onCreated={handleCreateChannel}
-						onDeleted={handleDeleteChannel}
-					/>
+					<Channels isCreating={isChannelCreating} onCreated={handleCreateChannel} />
 				</Section>
 			</div>
 		</aside>

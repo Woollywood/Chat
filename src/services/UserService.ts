@@ -1,53 +1,31 @@
-import moment from 'moment';
+import { Session } from '@supabase/supabase-js';
 
-import { supabase } from '@/supabase';
+import { Database } from '@/types/supabase';
+import { UserApi } from '@/api/UserApi';
 
-class UserActivityService {
+class _UserActivityService {
 	private intervalId: NodeJS.Timeout | null = null;
-	private _userId: string | null = null;
+	private session: Session | null = null;
 
-	constructor(userId?: string) {
-		this._userId = userId ?? null;
+	async setActivity(status: Database['public']['Enums']['user_status']) {
+		await UserApi.setActivity(status, this.session?.user.id!);
 	}
 
-	set userId(userId: string) {
-		this._userId = userId;
-	}
-
-	async setActivity() {
-		await supabase
-			.from('user_activity')
-			.update({ last_seen: moment().utc().format('YYYY-MM-DD HH:mm:ss+00'), status: 'ONLINE' })
-			.eq('user_id', this._userId!);
-	}
-
-	async init() {
-		this.setActivity();
+	async init(session: Session) {
+		this.session = session;
+		this.setActivity('ONLINE');
 		this.intervalId = setInterval(
 			() => {
-				this.setActivity();
+				this.setActivity('ONLINE');
 			},
 			1000 * 60 * 4,
 		);
 	}
 
 	destroy() {
-		if (this.intervalId) {
-			clearInterval(this.intervalId);
-		}
+		this.session = null;
+		clearInterval(this.intervalId!);
 	}
 }
 
-export class UserServiceFabric {
-	private static UserActivityInstance: UserActivityService | null = null;
-
-	private constructor() {}
-
-	public static getUserActivity(userId?: string) {
-		if (!this.UserActivityInstance) {
-			this.UserActivityInstance = new UserActivityService(userId);
-		}
-
-		return this.UserActivityInstance;
-	}
-}
+export const UserActivityService = new _UserActivityService();

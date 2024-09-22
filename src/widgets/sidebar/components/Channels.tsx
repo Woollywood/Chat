@@ -1,37 +1,53 @@
+import { useSelector, useDispatch } from 'react-redux';
 import { Skeleton } from '@nextui-org/skeleton';
 import { NavLink } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 
+import { useChannels } from '../hooks';
+
 import { DeleteIcon } from '@/components/icons';
 import { Database } from '@/types/supabase';
+import { AppDispatch, RootState } from '@/store';
+import { createChannelAction, deleteChannelAction } from '@/stores/channels';
 
 interface Props {
-	isLoading: boolean;
 	isCreating: boolean;
-	channels: Database['public']['Tables']['channels']['Row'][];
-	onCreated: (name: string) => void;
-	onDeleted: (name: string) => void;
+	onCreated: () => void;
 }
 
 type FormData = {
 	channelName: string;
 };
 
-export default function Channels({ isCreating, isLoading, channels, onCreated, onDeleted }: Props) {
+export default function Channels({ isCreating, onCreated }: Props) {
+	const { channels } = useSelector((state: RootState) => state.channels);
+	const { profile } = useSelector((state: RootState) => state.session);
+	const dispatch = useDispatch<AppDispatch>();
 	const {
 		register,
 		handleSubmit,
 		setValue,
 		formState: { errors },
 	} = useForm<FormData>();
-	const onSubmit = handleSubmit((data) => {
-		onCreated(data.channelName);
+	const onSubmit = handleSubmit(({ channelName }) => {
+		handleCreate(channelName, profile!);
 		setValue('channelName', '');
 	});
 
+	const { isChannelsLoading } = useChannels();
+
+	function handleDelete(name: string) {
+		dispatch(deleteChannelAction({ name }));
+	}
+
+	function handleCreate(name: string, profile: Database['public']['Tables']['profiles']['Row']) {
+		onCreated();
+		dispatch(createChannelAction({ name, profile }));
+	}
+
 	return (
 		<div className='space-y-2'>
-			{isLoading ? (
+			{isChannelsLoading ? (
 				<>
 					<Skeleton className='w-full rounded-lg'>
 						<div className='h-6 w-full rounded-lg bg-default-200' />
@@ -43,7 +59,7 @@ export default function Channels({ isCreating, isLoading, channels, onCreated, o
 						<div className='h-6 w-full rounded-lg bg-default-200' />
 					</Skeleton>
 				</>
-			) : channels.length > 0 ? (
+			) : channels?.length! > 0 ? (
 				channels?.map((channel) => (
 					<NavLink
 						key={channel.id}
@@ -55,7 +71,7 @@ export default function Channels({ isCreating, isLoading, channels, onCreated, o
 							onClick={(event) => {
 								event.preventDefault();
 								event.stopPropagation();
-								onDeleted(channel.slug);
+								handleDelete(channel.slug);
 							}}>
 							<DeleteIcon />
 						</button>
@@ -76,7 +92,7 @@ export default function Channels({ isCreating, isLoading, channels, onCreated, o
 						{...register('channelName', { required: true, minLength: 3 })}
 					/>
 					{errors.channelName && (
-						<span>
+						<span className='text-sm text-danger-200'>
 							{errors.channelName.type === 'required'
 								? 'This field must not be empty'
 								: 'The field must be at least 3 characters long'}

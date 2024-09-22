@@ -1,123 +1,55 @@
 import { useEffect } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import { RealtimePostgresUpdatePayload } from '@supabase/supabase-js';
 
 import InviteModal from '../../InviteModal';
 import UserSkeleton from '../../UserSkeleton';
-import { ActionType } from '../../../reducer';
-import { useContextState, useContextActions } from '../../../context';
 
 import MemberList from './MemberList';
 
-import { supabase } from '@/supabase';
-import { RootState } from '@/store';
+import { useLiveChatContext } from '@/pages/liveChat/context';
+import { updateMemberActivity, deleteUser, inviteUser } from '@/stores/channel';
+import { RootState, AppDispatch } from '@/store';
 import { Database } from '@/types/supabase';
+import { WebSocketService } from '@/services/WebSocketService';
 
 export default function Members() {
 	const params = useParams();
-
+	const dispatch = useDispatch<AppDispatch>();
 	const { session } = useSelector((state: RootState) => state.session);
-	const { channel: channelState, members: membersState } = useContextState();
-	const { data: channel } = channelState;
-	const { data: members, isLoading: isMembersLoading } = membersState;
-
-	const dispatch = useContextActions()!;
+	const { channel, members } = useSelector((state: RootState) => state.channel);
+	const { isLoading } = useLiveChatContext();
 
 	function updateMembers(
-		payload: RealtimePostgresUpdatePayload<{
-			[key: string]: any;
-		}>,
+		payload: RealtimePostgresUpdatePayload<Database['public']['Tables']['user_activity']['Row']>,
 	) {
-		const updatedRow: Database['public']['Tables']['user_activity']['Row'] =
-			payload.new as Database['public']['Tables']['user_activity']['Row'];
-
-		if (updatedRow) {
-			dispatch({
-				type: ActionType.SET_MEMBERS,
-				payload: {
-					isLoading: false,
-					// @ts-ignore
-					data: members?.map((member) =>
-						member.user_id !== updatedRow.user_id
-							? member
-							: {
-									...member,
-									profiles: {
-										...member.profiles,
-										user_activity: updatedRow,
-									},
-								},
-					),
-				},
-			});
+		if (payload.new) {
+			dispatch(updateMemberActivity(payload.new));
 		}
 	}
 
 	useEffect(() => {
-		const channel = supabase
-			.channel('user_activity_UPDATE')
-			.on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'user_activity' }, (payload) => {
-				if (payload?.new) {
-					updateMembers(payload);
-				}
-			})
-			.subscribe();
+		WebSocketService.subscribe<Database['public']['Tables']['user_activity']['Row']>({
+			name: 'live-chat-user-activity',
+			table: 'user_activity',
+		}).update((payload) => {
+			updateMembers(payload);
+		});
 
 		return () => {
-			channel.unsubscribe();
+			WebSocketService.unsubscribeAll({
+				name: 'live-chat-user-activity',
+			});
 		};
 	}, [updateMembers]);
 
 	async function handleDelete(userId: string) {
-		dispatch({
-			type: ActionType.SET_MEMBERS,
-			payload: {
-				isLoading: true,
-				data: members,
-			},
-		});
-		const { data: deletedMember } = await supabase
-			.from('channels_members')
-			.delete()
-			.eq('user_id', userId)
-			.eq('channel_id', params.id!)
-			.select('*, profiles!channels_members_user_id_fkey ( * )')
-			.single();
-
-		dispatch({
-			type: ActionType.SET_MEMBERS,
-			payload: {
-				isLoading: false,
-				// @ts-ignore
-				data: members?.filter((member) => member.id !== deletedMember?.id),
-			},
-		});
+		dispatch(deleteUser({ userId, channelId: params.id! }));
 	}
 
 	async function inviteHandler(userId: string) {
-		dispatch({
-			type: ActionType.SET_MEMBERS,
-			payload: {
-				isLoading: true,
-				data: members,
-			},
-		});
-
-		const { data: invitedMember } = await supabase
-			.from('channels_members')
-			.insert([{ channel_id: channel?.id!, user_id: userId, invited_by: session?.user.id! }])
-			.select('*, profiles!channels_members_user_id_fkey ( *, user_activity!user_activity_user_id_fkey ( * ) )')
-			.single();
-
-		dispatch({
-			type: ActionType.SET_MEMBERS,
-			payload: {
-				isLoading: false,
-				// @ts-ignore
-				data: members?.concat(invitedMember),
-			},
-		});
+		dispatch(inviteUser({ channel: channel!, userId, session: session! }));
 	}
 
 	return (
@@ -131,7 +63,7 @@ export default function Members() {
 				/>
 			</div>
 			<div className='space-y-2'>
-				{isMembersLoading ? (
+				{isLoading ? (
 					<div className='space-y-2'>
 						<UserSkeleton />
 						<UserSkeleton />
