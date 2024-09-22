@@ -10,10 +10,10 @@ import {
 import { supabase } from '@/supabase';
 import { Database } from '@/types/supabase';
 
-interface ChannelType {
+type ChannelType = {
 	eventType: REALTIME_POSTGRES_CHANGES_LISTEN_EVENT;
 	channel: RealtimeChannel;
-}
+};
 
 class _WebSocketService {
 	private mapChannels: Map<string, ChannelType[]> = new Map();
@@ -21,9 +21,11 @@ class _WebSocketService {
 	subscribe<T extends { [key: string]: any }>({
 		name,
 		table,
+		filter,
 	}: {
 		name: string;
 		table: keyof Database['public']['Tables'];
+		filter?: string;
 	}) {
 		if (!this.mapChannels.has(name)) {
 			this.mapChannels.set(name, []);
@@ -32,9 +34,19 @@ class _WebSocketService {
 		const withSubscription = <P>({
 			eventType,
 			handler,
+			filter,
 		}: {
 			eventType: REALTIME_POSTGRES_CHANGES_LISTEN_EVENT;
-			handler: (channel: RealtimeChannel, callback: (payload: P) => void) => void;
+			handler: ({
+				channel,
+				filter,
+				callback,
+			}: {
+				channel: RealtimeChannel;
+				filter?: string;
+				callback: (payload: P) => void;
+			}) => void;
+			filter?: string;
 		}) => {
 			return (callback: (payload: P) => void) => {
 				const mapChannel = this.mapChannels.get(name)!;
@@ -49,17 +61,16 @@ class _WebSocketService {
 
 				this.mapChannels.set(name, [...mapChannel, { eventType, channel }]);
 
-				handler(channel, callback);
+				handler({ channel, filter, callback });
 				channel.subscribe();
-
-				// console.log(`${this.getChannelName({ name, eventType })} on table ${table} subscribed`);
 			};
 		};
 
 		const all = withSubscription<RealtimePostgresChangesPayload<T>>({
 			eventType: REALTIME_POSTGRES_CHANGES_LISTEN_EVENT.ALL,
-			handler: (channel, callback) => {
-				channel.on<T>('postgres_changes', { event: '*', schema: 'public', table }, (payload) => {
+			filter,
+			handler: ({ channel, filter, callback }) => {
+				channel.on<T>('postgres_changes', { event: '*', schema: 'public', table, filter }, (payload) => {
 					callback(payload);
 				});
 			},
@@ -67,8 +78,9 @@ class _WebSocketService {
 
 		const insert = withSubscription<RealtimePostgresInsertPayload<T>>({
 			eventType: REALTIME_POSTGRES_CHANGES_LISTEN_EVENT.INSERT,
-			handler: (channel, callback) => {
-				channel.on<T>('postgres_changes', { event: 'INSERT', schema: 'public', table }, (payload) => {
+			filter,
+			handler: ({ channel, filter, callback }) => {
+				channel.on<T>('postgres_changes', { event: 'INSERT', schema: 'public', table, filter }, (payload) => {
 					callback(payload);
 				});
 			},
@@ -76,8 +88,9 @@ class _WebSocketService {
 
 		const update = withSubscription<RealtimePostgresUpdatePayload<T>>({
 			eventType: REALTIME_POSTGRES_CHANGES_LISTEN_EVENT.UPDATE,
-			handler: (channel, callback) => {
-				channel.on<T>('postgres_changes', { event: 'UPDATE', schema: 'public', table }, (payload) => {
+			filter,
+			handler: ({ channel, filter, callback }) => {
+				channel.on<T>('postgres_changes', { event: 'UPDATE', schema: 'public', table, filter }, (payload) => {
 					callback(payload);
 				});
 			},
@@ -85,8 +98,9 @@ class _WebSocketService {
 
 		const del = withSubscription<RealtimePostgresDeletePayload<T>>({
 			eventType: REALTIME_POSTGRES_CHANGES_LISTEN_EVENT.DELETE,
-			handler: (channel, callback) => {
-				channel.on<T>('postgres_changes', { event: 'DELETE', schema: 'public', table }, (payload) => {
+			filter,
+			handler: ({ channel, filter, callback }) => {
+				channel.on<T>('postgres_changes', { event: 'DELETE', schema: 'public', table, filter }, (payload) => {
 					callback(payload);
 				});
 			},
@@ -102,7 +116,6 @@ class _WebSocketService {
 
 			if (channel) {
 				channel.channel.unsubscribe();
-				// console.log(`${this.getChannelName({ name, eventType })} unsubscribed`);
 
 				if (mapChannel?.length! > 1) {
 					this.mapChannels.set(name, mapChannel?.filter((channel) => channel.eventType !== eventType)!);
@@ -117,9 +130,7 @@ class _WebSocketService {
 		if (this.mapChannels.has(name)) {
 			const mapChannel = this.mapChannels.get(name)!;
 
-			for (const { channel, eventType } of mapChannel) {
-				// console.log(`${this.getChannelName({ name, eventType })} unsubscribed`);
-
+			for (const { channel } of mapChannel) {
 				channel.unsubscribe();
 			}
 
