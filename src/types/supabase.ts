@@ -14,19 +14,19 @@ export type Database = {
           created_at: string
           created_by: string
           id: number
-          slug: string
+          name: string
         }
         Insert: {
           created_at?: string
           created_by: string
           id?: number
-          slug: string
+          name: string
         }
         Update: {
           created_at?: string
           created_by?: string
           id?: number
-          slug?: string
+          name?: string
         }
         Relationships: [
           {

@@ -35,7 +35,7 @@ export default function Header() {
 				</div>
 			) : (
 				<div className='h-28 px-6 py-2 pb-4'>
-					<div className='mb-4 text-xl font-semibold'># {channel?.slug}</div>
+					<div className='mb-4 text-xl font-semibold'># {channel?.name}</div>
 					<div className='flex items-center gap-4'>
 						<AvatarGroup isBordered>
 							{members?.map((member) => (

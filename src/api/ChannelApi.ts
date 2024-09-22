@@ -41,7 +41,7 @@ export class ChannelApi {
 	static async create(channelName: string, profile: Database['public']['Tables']['profiles']['Row']) {
 		const { data } = await supabase
 			.from('channels')
-			.insert([{ slug: channelName, created_by: profile?.id! }])
+			.insert([{ name: channelName, created_by: profile?.id! }])
 			.select('*, channels_members ( * )')
 			.single();
 
@@ -58,7 +58,7 @@ export class ChannelApi {
 		const { data } = await supabase
 			.from('channels')
 			.delete()
-			.eq('slug', channelName)
+			.eq('name', channelName)
 			.select('*, channels_members ( * )')
 			.single();
 
