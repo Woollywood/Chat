@@ -65,13 +65,13 @@ export default function Channels({ isCreating, onCreated }: Props) {
 						key={channel.id}
 						className='flex items-center justify-between gap-4 whitespace-nowrap rounded-lg p-2 transition-colors hover:bg-foreground-100'
 						to={`live-chat/${channel.id}`}>
-						<h3 className='line-clamp-1 text-lg'># {channel.slug}</h3>
+						<h3 className='line-clamp-1 text-lg'># {channel.name}</h3>
 						<button
 							className='flex-shrink-0 rounded-lg p-1 transition-colors hover:bg-foreground hover:text-background'
 							onClick={(event) => {
 								event.preventDefault();
 								event.stopPropagation();
-								handleDelete(channel.slug);
+								handleDelete(channel.name);
 							}}>
 							<DeleteIcon />
 						</button>

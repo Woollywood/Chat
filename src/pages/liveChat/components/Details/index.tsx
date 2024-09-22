@@ -24,7 +24,7 @@ export default function Details() {
 						<Skeleton className='flex h-6 w-full rounded-full' />
 					</div>
 				) : (
-					<h2 className='pl-2 text-xl font-semibold'># {channel?.slug}</h2>
+					<h2 className='pl-2 text-xl font-semibold'># {channel?.name}</h2>
 				)}
 			</div>
 			<Members />
