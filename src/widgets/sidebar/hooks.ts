@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RealtimePostgresInsertPayload } from '@supabase/supabase-js';
 
@@ -28,7 +28,7 @@ export function useChannels() {
 
 export function useSocket() {
 	const dispatch = useDispatch<AppDispatch>();
-	const { channels, relatedChannels } = useSelector((state: RootState) => state.channels);
+	const { channels } = useSelector((state: RootState) => state.channels);
 	const { channel } = useSelector((state: RootState) => state.channel);
 	const { profile } = useSelector((state: RootState) => state.session);
 
@@ -75,18 +75,15 @@ export function useSocket() {
 		console.log(payload);
 
 		const rowId = payload.new.id!;
-		const channelFounded = relatedChannels?.find((channel) =>
+		const channelFounded = channels?.find((channel) =>
 			channel.channels_members.some((member) => member.id === rowId),
 		);
+		const member = channelFounded?.channels_members.find((member) => member.id === rowId);
 
-		if (channelFounded) {
-			const member = channelFounded.channels_members.find((member) => member.id === rowId);
-
-			if (member?.user_id === profile?.id) {
-				payloadDeleteChannel(channelFounded);
-			} else if (member?.channel_id === channel?.id) {
-				payloadDeleteMember(member!);
-			}
+		if (member?.user_id === profile?.id) {
+			payloadDeleteChannel(channelFounded!);
+		} else if (member?.channel_id === channel?.id) {
+			payloadDeleteMember(member!);
 		}
 	}
 
