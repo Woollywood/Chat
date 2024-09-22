@@ -54,11 +54,11 @@ export class ChannelApi {
 		return data;
 	}
 
-	static async delete(channelName: string) {
+	static async delete(id: number) {
 		const { data } = await supabase
 			.from('channels')
 			.delete()
-			.eq('name', channelName)
+			.eq('id', id)
 			.select('*, channels_members ( * )')
 			.single();
 

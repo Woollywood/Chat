@@ -30,7 +30,7 @@ export default function LeaveChat() {
 	}
 
 	async function handleDelete() {
-		await dispatch(deleteChannelAction({ name: channel?.name! }));
+		await dispatch(deleteChannelAction(channel?.id!));
 		navigate('/');
 	}
 

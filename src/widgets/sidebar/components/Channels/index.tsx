@@ -3,12 +3,13 @@ import { Skeleton } from '@nextui-org/skeleton';
 import { NavLink } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 
-import { useChannels } from '../hooks';
+import { useChannels } from '../../hooks';
 
-import { DeleteIcon } from '@/components/icons';
+import Actions from './components/Actions';
+
 import { Database } from '@/types/supabase';
 import { AppDispatch, RootState } from '@/store';
-import { createChannelAction, deleteChannelAction } from '@/stores/channels';
+import { createChannelAction } from '@/stores/channels';
 
 interface Props {
 	isCreating: boolean;
@@ -36,10 +37,6 @@ export default function Channels({ isCreating, onCreated }: Props) {
 
 	const { isChannelsLoading } = useChannels();
 
-	function handleDelete(name: string) {
-		dispatch(deleteChannelAction({ name }));
-	}
-
 	function handleCreate(name: string, profile: Database['public']['Tables']['profiles']['Row']) {
 		onCreated();
 		dispatch(createChannelAction({ name, profile }));
@@ -66,15 +63,7 @@ export default function Channels({ isCreating, onCreated }: Props) {
 						className='flex items-center justify-between gap-4 whitespace-nowrap rounded-lg p-2 transition-colors hover:bg-foreground-100'
 						to={`live-chat/${channel.id}`}>
 						<h3 className='line-clamp-1 text-lg'># {channel.name}</h3>
-						<button
-							className='flex-shrink-0 rounded-lg p-1 transition-colors hover:bg-foreground hover:text-background'
-							onClick={(event) => {
-								event.preventDefault();
-								event.stopPropagation();
-								handleDelete(channel.name);
-							}}>
-							<DeleteIcon />
-						</button>
+						<Actions channelId={channel.id} />
 					</NavLink>
 				))
 			) : (

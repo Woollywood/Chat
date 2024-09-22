@@ -329,3 +329,9 @@ export const EyeIcon = (props: IconSvgProps) => (
 		/>
 	</svg>
 );
+
+export const EllipsisIcon = (props: IconSvgProps) => (
+	<svg version='1.1' xmlns='http://www.w3.org/2000/svg' width='28' height='32' viewBox='0 0 28 32' {...props}>
+		<path d='M0.5 16c0-1.933 1.567-3.5 3.5-3.5s3.5 1.567 3.5 3.5v0c0 1.933-1.567 3.5-3.5 3.5s-3.5-1.567-3.5-3.5v0zM10.5 16c0-1.933 1.567-3.5 3.5-3.5s3.5 1.567 3.5 3.5v0c0 1.933-1.567 3.5-3.5 3.5s-3.5-1.567-3.5-3.5v0zM24 12.5c1.933 0 3.5 1.567 3.5 3.5s-1.567 3.5-3.5 3.5v0c-1.933 0-3.5-1.567-3.5-3.5s1.567-3.5 3.5-3.5v0z'></path>
+	</svg>
+);
