@@ -8,8 +8,9 @@ export class ChannelApi {
 
 	static async getAll() {
 		const { data } = await supabase.from('channels').select('*, channels_members ( * )');
+		const channels = data?.map(({ channels_members, ...rest }) => rest);
 
-		return data;
+		return { channels, data };
 	}
 
 	static async getFromId(id: string) {
@@ -42,18 +43,25 @@ export class ChannelApi {
 		const { data } = await supabase
 			.from('channels')
 			.insert([{ slug: channelName, created_by: profile?.id! }])
-			.select()
+			.select('*, channels_members ( * )')
 			.single();
 
-		await supabase
+		const { data: member } = await supabase
 			.from('channels_members')
 			.insert([{ user_id: profile.id, channel_id: data?.id!, invited_by: profile.id }]);
+
+		data?.channels_members.push(member!);
 
 		return data;
 	}
 
 	static async delete(channelName: string) {
-		const { data } = await supabase.from('channels').delete().eq('slug', channelName).select().single();
+		const { data } = await supabase
+			.from('channels')
+			.delete()
+			.eq('slug', channelName)
+			.select('*, channels_members ( * )')
+			.single();
 
 		return data;
 	}
