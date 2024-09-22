@@ -1,16 +1,15 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { RealtimePostgresDeletePayload, RealtimePostgresInsertPayload } from '@supabase/supabase-js';
+import { RealtimePostgresInsertPayload } from '@supabase/supabase-js';
 
 import { AppDispatch, RootState } from '@/store';
 import {
-	getChannels,
-	getChannel,
-	SuccessfulChannel,
-	exclusionFromChannel,
+	getChannelsAction,
+	getChannelAction,
+	deleteChannel,
 	insertMember,
 	deleteMember,
-	Status,
+	RelatedChannels,
 } from '@/stores/channels';
 import { insertUserFromId, exclusionMember } from '@/stores/channel';
 import { Database } from '@/types/supabase';
@@ -21,7 +20,7 @@ export function useChannels() {
 	const [isChannelsLoading, setChannelsLoading] = useState(true);
 
 	useEffect(() => {
-		dispatch(getChannels()).then(() => setChannelsLoading(false));
+		dispatch(getChannelsAction()).then(() => setChannelsLoading(false));
 	}, []);
 
 	return { isChannelsLoading };
@@ -29,7 +28,7 @@ export function useChannels() {
 
 export function useSocket() {
 	const dispatch = useDispatch<AppDispatch>();
-	const { channels } = useSelector((state: RootState) => state.channels);
+	const { channels, relatedChannels } = useSelector((state: RootState) => state.channels);
 	const { channel } = useSelector((state: RootState) => state.channel);
 	const { profile } = useSelector((state: RootState) => state.session);
 
@@ -48,40 +47,43 @@ export function useSocket() {
 	) {
 		if (payload.new.user_id === profile?.id) {
 			dispatch(
-				getChannel({
+				getChannelAction({
 					id: payload.new.channel_id.toString(),
 				}),
 			);
 		}
 	}
 	function insert(payload: RealtimePostgresInsertPayload<Database['public']['Tables']['channels_members']['Row']>) {
-		if (channels?.find((channel) => channel.data.id === payload.new.channel_id)) {
+		if (channels?.find((channel) => channel.id === payload.new.channel_id)) {
 			payloadInsertMember(payload);
 		} else {
 			payloadInserChannel(payload);
 		}
 	}
 
-	function payloadDeleteChannel(channel: { data: SuccessfulChannel; status: Status }) {
-		dispatch(exclusionFromChannel(channel.data.id));
+	function payloadDeleteChannel(channel: RelatedChannels) {
+		dispatch(deleteChannel(channel.id));
 	}
 	function payloadDeleteMember(member: Database['public']['Tables']['channels_members']['Row']) {
 		dispatch(exclusionMember(member.id));
 		dispatch(deleteMember(member.id));
 	}
-	function del(payload: RealtimePostgresDeletePayload<Database['public']['Tables']['channels_members']['Row']>) {
-		const rowId = payload.old.id!;
-		const channelFounded = channels?.find((channel) =>
-			(channel.data as SuccessfulChannel).channels_members.some((member) => member.id === rowId),
+	function del(
+		payload: RealtimePostgresInsertPayload<Database['public']['Tables']['deleted_channels_members']['Row']>,
+	) {
+		console.log('del');
+		console.log(payload);
+
+		const rowId = payload.new.id!;
+		const channelFounded = relatedChannels?.find((channel) =>
+			channel.channels_members.some((member) => member.id === rowId),
 		);
 
 		if (channelFounded) {
-			const member = (channelFounded?.data as SuccessfulChannel).channels_members.find(
-				(member) => member.id === rowId,
-			);
+			const member = channelFounded.channels_members.find((member) => member.id === rowId);
 
 			if (member?.user_id === profile?.id) {
-				payloadDeleteChannel(channelFounded as { data: SuccessfulChannel; status: Status });
+				payloadDeleteChannel(channelFounded);
 			} else if (member?.channel_id === channel?.id) {
 				payloadDeleteMember(member!);
 			}
@@ -89,17 +91,37 @@ export function useSocket() {
 	}
 
 	useEffect(() => {
+		const channelIds = channels?.map((channel) => channel.id);
+		const filter = channelIds?.length! > 0 ? `channel_id=in.(${channelIds?.join(',')})` : undefined;
+
 		WebSocketService.subscribe<Database['public']['Tables']['channels_members']['Row']>({
 			name: 'live-chat-members',
 			table: 'channels_members',
+			filter,
 		}).insert(insert);
-		WebSocketService.subscribe<Database['public']['Tables']['channels_members']['Row']>({
-			name: 'live-chat-members',
-			table: 'channels_members',
-		}).del(del);
+		WebSocketService.subscribe<Database['public']['Tables']['deleted_channels_members']['Row']>({
+			name: 'live-chat-members-deleted',
+			table: 'deleted_channels_members',
+			filter,
+		}).insert(del);
 
 		return () => {
 			WebSocketService.unsubscribeAll({ name: 'live-chat-members' });
+			WebSocketService.unsubscribeAll({ name: 'live-chat-members-deleted' });
+		};
+	}, [insert, del]);
+
+	useEffect(() => {
+		const filter = profile?.id ? `user_id=eq.${profile.id}` : undefined;
+
+		WebSocketService.subscribe<Database['public']['Tables']['channels_members']['Row']>({
+			name: 'live-chat-members-for-current-user',
+			table: 'channels_members',
+			filter,
+		}).insert(payloadInserChannel);
+
+		return () => {
+			WebSocketService.unsubscribeAll({ name: 'live-chat-members-for-current-user' });
 		};
 	}, [insert, del]);
 }

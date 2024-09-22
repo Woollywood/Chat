@@ -5,13 +5,13 @@ import { useNavigate } from 'react-router-dom';
 
 import { useLiveChatContext } from '@/pages/liveChat/context';
 import { RootState, AppDispatch } from '@/store';
-import { deleteChannel, leaveChannel } from '@/stores/channels';
+import { deleteChannelAction, leaveChannelAction } from '@/stores/channels';
 
 export default function LeaveChat() {
 	const navigate = useNavigate();
 	const dispatch = useDispatch<AppDispatch>();
 	const { isLoading } = useLiveChatContext();
-	const { channel, members } = useSelector((state: RootState) => state.channel);
+	const { channel } = useSelector((state: RootState) => state.channel);
 	const { session } = useSelector((state: RootState) => state.session);
 
 	const isCreator = channel?.created_by === session?.user.id;
@@ -25,12 +25,12 @@ export default function LeaveChat() {
 	}
 
 	async function handleLeave() {
-		await dispatch(leaveChannel(channel?.id!));
+		await dispatch(leaveChannelAction(channel?.id!));
 		navigate('/');
 	}
 
 	async function handleDelete() {
-		await dispatch(deleteChannel({ name: channel?.slug! }));
+		await dispatch(deleteChannelAction({ name: channel?.slug! }));
 		navigate('/');
 	}
 
