@@ -6,11 +6,10 @@ import {
 	RealtimePostgresUpdatePayload,
 	REALTIME_POSTGRES_CHANGES_LISTEN_EVENT,
 } from '@supabase/supabase-js';
+import { isNil } from 'lodash-es';
 
 import { supabase } from '@/supabase';
 import { Database } from '@/types/supabase';
-
-import { isNil } from 'lodash-es';
 
 type ChannelType = {
 	eventType: REALTIME_POSTGRES_CHANGES_LISTEN_EVENT;
