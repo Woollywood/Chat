@@ -25,7 +25,7 @@ export default function MemberList({ members, onDelete }: Props) {
 				{member?.invited_by === member?.user_id ? (
 					<Badge color='primary' content='creator'>
 						<div className='flex items-center gap-2'>
-							<Avatar src={member?.profiles?.avatar_url!} />
+							<Avatar src={member?.profiles?.avatar_url!} storage='avatars' />
 							<div className='flex flex-col justify-between'>
 								<h4 className='text-md font-medium'>{member?.profiles?.full_name}</h4>
 								<p
@@ -39,7 +39,7 @@ export default function MemberList({ members, onDelete }: Props) {
 					</Badge>
 				) : (
 					<>
-						<Avatar src={member?.profiles?.avatar_url!} />
+						<Avatar src={member?.profiles?.avatar_url!} storage='avatars' />
 						<div className='flex flex-col justify-between'>
 							<h4 className='text-md font-medium'>{member?.profiles?.full_name}</h4>
 							<p

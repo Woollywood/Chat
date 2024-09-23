@@ -6,6 +6,7 @@ import { useChannels } from '../../hooks';
 
 import Actions from './components/Actions';
 
+import Avatar from '@/components/avatar';
 import { RootState } from '@/store';
 
 export default function Channels() {
@@ -32,7 +33,10 @@ export default function Channels() {
 						key={channel.id}
 						className='flex items-center justify-between gap-4 whitespace-nowrap rounded-lg p-2 transition-colors hover:bg-foreground-100'
 						to={`live-chat/${channel.id}`}>
-						<h3 className='line-clamp-1 text-lg'># {channel.name}</h3>
+						<div className='flex items-center gap-2'>
+							<Avatar className='flex-shrink-0' src={channel.avatar_url!} storage='channels_avatars' />
+							<p className='line-clamp-1 text-lg'>{channel.name}</p>
+						</div>
 						<Actions channelId={channel.id} />
 					</NavLink>
 				))

@@ -39,7 +39,12 @@ export default function Header() {
 					<div className='flex items-center gap-4'>
 						<AvatarGroup isBordered>
 							{members?.map((member) => (
-								<Avatar key={member.id} size='sm' src={member.profiles?.avatar_url!} />
+								<Avatar
+									key={member.id}
+									size='sm'
+									src={member.profiles?.avatar_url!}
+									storage='avatars'
+								/>
 							))}
 						</AvatarGroup>
 						<p className='text-foreground-700'>{members?.length} Members</p>

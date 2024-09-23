@@ -81,10 +81,10 @@ export default function InviteModal({ className, existingUserIds, onInvite }: Pr
 													content=''
 													placement='bottom-right'
 													shape='circle'>
-													<Avatar src={user.avatar_url!} />
+													<Avatar src={user.avatar_url!} storage='avatars' />
 												</Badge>
 											) : (
-												<Avatar src={user.avatar_url!} />
+												<Avatar src={user.avatar_url!} storage='avatars' />
 											)}
 											<div className='flex flex-col justify-between'>
 												<h2 className='text-md font-medium'>{user.full_name}</h2>

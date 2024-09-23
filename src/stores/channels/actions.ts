@@ -15,8 +15,18 @@ export const getChannel = createAsyncThunk(`${typePrefix}/getFromId`, async (id:
 
 export const createChannel = createAsyncThunk(
 	`${typePrefix}/create`,
-	async ({ name, profile }: { name: string; profile: Database['public']['Tables']['profiles']['Row'] }) => {
-		return await ChannelApi.create(name, profile);
+	async ({
+		name,
+		avatar,
+		description,
+		profile,
+	}: {
+		name: string;
+		avatar?: { url: string; file: Blob };
+		description: string;
+		profile: Database['public']['Tables']['profiles']['Row'];
+	}) => {
+		return await ChannelApi.create({ name, profile, avatar, description });
 	},
 );
 

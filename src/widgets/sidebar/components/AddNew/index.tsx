@@ -4,6 +4,7 @@ import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure
 import { Button } from '@nextui-org/button';
 import { Input } from '@nextui-org/input';
 import { Spinner } from '@nextui-org/spinner';
+import { Textarea } from '@nextui-org/input';
 import { useForm } from 'react-hook-form';
 
 import { PlusIcon } from '@/components/icons';
@@ -13,11 +14,13 @@ import { Database } from '@/types/supabase';
 import { createChannelAction } from '@/stores/channels';
 
 type FormData = {
-	channelName: string;
+	name: string;
+	description: string;
 };
 
 export default function AddNew() {
 	const [isLoading, setLoading] = useState(false);
+	const [avatar, setAvatar] = useState<{ url: string; file: Blob } | null>(null);
 	const { profile } = useSelector((state: RootState) => state.session);
 	const dispatch = useDispatch<AppDispatch>();
 	const { isOpen, onOpen, onOpenChange } = useDisclosure();
@@ -28,15 +31,20 @@ export default function AddNew() {
 		setValue,
 		formState: { errors },
 	} = useForm<FormData>();
-	const onSubmit = handleSubmit(async ({ channelName }) => {
+	const onSubmit = handleSubmit(async ({ name, description }) => {
 		setLoading(true);
-		await handleCreate(channelName, profile!);
-		setValue('channelName', '');
+		await handleCreate(name, description, profile!);
+		setValue('name', '');
+		setValue('description', '');
 		setLoading(false);
 	});
 
-	async function handleCreate(name: string, profile: Database['public']['Tables']['profiles']['Row']) {
-		await dispatch(createChannelAction({ name, profile }));
+	async function handleCreate(
+		name: string,
+		description: string,
+		profile: Database['public']['Tables']['profiles']['Row'],
+	) {
+		await dispatch(createChannelAction({ name, description, profile, avatar: avatar! }));
 	}
 
 	async function handleCreateModal(onClose: () => void) {
@@ -60,23 +68,33 @@ export default function AddNew() {
 							<ModalHeader className='flex flex-col gap-1'>Create new channel</ModalHeader>
 							<ModalBody>
 								<div className='flex items-center gap-4'>
-									<AvatarViewer className='flex-shrink-0' name='Avatar' size='lg' />
+									<AvatarViewer
+										className='flex-shrink-0'
+										name='Avatar'
+										size='lg'
+										onUpdateUrl={setAvatar}
+									/>
 									<div className='flex flex-col gap-1'>
 										<Input
 											className='w-full max-w-64 bg-transparent outline-none'
 											placeholder='Channel name'
 											type='text'
-											{...register('channelName', { required: true, minLength: 3 })}
+											{...register('name', { required: true, minLength: 3 })}
 										/>
-										{errors.channelName && (
+										{errors.name && (
 											<span className='text-sm text-danger-200'>
-												{errors.channelName.type === 'required'
+												{errors.name.type === 'required'
 													? 'This field must not be empty'
 													: 'The field must be at least 3 characters long'}
 											</span>
 										)}
 									</div>
 								</div>
+								<Textarea
+									label='Description'
+									placeholder='Enter your description'
+									{...register('description')}
+								/>
 							</ModalBody>
 							<ModalFooter>
 								<Button className='w-16' color='danger' variant='light' onPress={onClose}>
