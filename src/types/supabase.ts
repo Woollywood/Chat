@@ -11,20 +11,26 @@ export type Database = {
     Tables: {
       channels: {
         Row: {
+          avatar_url: string | null
           created_at: string
           created_by: string
+          description: string
           id: number
           name: string
         }
         Insert: {
+          avatar_url?: string | null
           created_at?: string
           created_by: string
+          description: string
           id?: number
           name: string
         }
         Update: {
+          avatar_url?: string | null
           created_at?: string
           created_by?: string
+          description?: string
           id?: number
           name?: string
         }

@@ -8,6 +8,7 @@ import UserSkeleton from '../../UserSkeleton';
 
 import MemberList from './MemberList';
 
+import Section from '@/components/Section';
 import { useLiveChatContext } from '@/pages/liveChat/context';
 import { updateMemberActivity, deleteUser, inviteUser } from '@/stores/channel';
 import { RootState, AppDispatch } from '@/store';
@@ -53,15 +54,16 @@ export default function Members() {
 	}
 
 	return (
-		<div className='scrollbar overflow-y-auto px-6 py-12'>
-			<div className='mb-4 flex items-center justify-between gap-2'>
-				<h2 className='text-xl font-semibold uppercase text-gray-500'>Members</h2>
+		<Section
+			actions={
 				<InviteModal
 					className='ml-auto'
 					existingUserIds={members?.map((member) => member.user_id)!}
 					onInvite={inviteHandler}
 				/>
-			</div>
+			}
+			className='scrollbar'
+			title='Members'>
 			<div className='space-y-2'>
 				{isLoading ? (
 					<div className='space-y-2'>
@@ -74,6 +76,6 @@ export default function Members() {
 					<MemberList members={members!} onDelete={handleDelete} />
 				)}
 			</div>
-		</div>
+		</Section>
 	);
 }

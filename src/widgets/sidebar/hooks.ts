@@ -45,11 +45,7 @@ export function useSocket() {
 		payload: RealtimePostgresInsertPayload<Database['public']['Tables']['channels_members']['Row']>,
 	) {
 		if (payload.new.user_id === profile?.id) {
-			dispatch(
-				getChannelAction({
-					id: payload.new.channel_id.toString(),
-				}),
-			);
+			dispatch(getChannelAction(payload.new.channel_id.toString()));
 		}
 	}
 
