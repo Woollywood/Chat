@@ -1,4 +1,5 @@
-import { MutableRefObject, useEffect, useMemo } from 'react';
+import { MutableRefObject, useEffect, useMemo, useState } from 'react';
+import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { WebSocketService } from '@/services/WebSocketService';
@@ -6,22 +7,35 @@ import { getMessages, insertMessage } from '@/stores/channelsMessages';
 import { AppDispatch, RootState } from '@/store';
 import { Database } from '@/types/supabase';
 
-export function useMessages(channelId: number, messagesContainer: MutableRefObject<HTMLDivElement | null>) {
+export function useMessages(messagesContainer: MutableRefObject<HTMLDivElement | null>) {
+	const params = useParams();
+	const channelId = +params.id!;
+
+	const [isLoading, setLoading] = useState(true);
 	const { members } = useSelector((state: RootState) => state.channel);
 	const channelProfiles = useMemo(() => members?.map((member) => member.profiles), [members]);
 
 	const dispatch = useDispatch<AppDispatch>();
+
+	function scrollBottom() {
+		const innerContainer = messagesContainer.current?.firstChild as HTMLDivElement;
+
+		messagesContainer.current?.scrollTo({ top: innerContainer.clientHeight });
+	}
+
+	async function fetchMessages() {
+		setLoading(true);
+		await dispatch(getMessages({ channelId }));
+		setLoading(false);
+		scrollBottom();
+	}
 
 	useEffect(() => {
 		if (!channelId) {
 			return;
 		}
 
-		dispatch(getMessages({ channelId })).then(() => {
-			const innerContainer = messagesContainer.current?.firstChild as HTMLDivElement;
-
-			messagesContainer.current?.scrollTo({ top: innerContainer.clientHeight });
-		});
+		fetchMessages();
 
 		WebSocketService.subscribe<Database['public']['Tables']['channels_messages']['Row']>({
 			name: 'channels_messages',
@@ -34,15 +48,13 @@ export function useMessages(channelId: number, messagesContainer: MutableRefObje
 				}),
 			);
 
-			setTimeout(() => {
-				const innerContainer = messagesContainer.current?.firstChild as HTMLDivElement;
-
-				messagesContainer.current?.scrollTo({ top: innerContainer.clientHeight });
-			}, 0);
+			setTimeout(scrollBottom, 0);
 		});
 
 		return () => {
 			WebSocketService.unsubscribeAll({ name: 'channels_messages' });
 		};
 	}, [channelId]);
+
+	return { isLoading };
 }

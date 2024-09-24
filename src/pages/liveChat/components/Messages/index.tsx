@@ -1,9 +1,11 @@
 import { useState, useRef } from 'react';
 import { useSelector } from 'react-redux';
+import { useParams } from 'react-router-dom';
 import moment from 'moment';
 import { Textarea } from '@nextui-org/input';
 import { Button } from '@nextui-org/button';
 import { Spinner } from '@nextui-org/spinner';
+import { Skeleton } from '@nextui-org/skeleton';
 
 import { useMessages } from './hooks';
 
@@ -12,25 +14,34 @@ import Avatar from '@/components/avatar';
 import { MessagesApi } from '@/api/MessagesApi';
 import { RootState } from '@/store';
 
+function SkeletonMessage() {
+	return (
+		<Skeleton className='w-3/5 rounded-lg'>
+			<div className='h-6 w-full rounded-lg bg-secondary' />
+		</Skeleton>
+	);
+}
+
 export default function Messages() {
+	const [isLoadingMessages, setLoadingMessages] = useState(false);
+	const messagesRef = useRef<HTMLDivElement | null>(null);
 	const [message, setMessage] = useState('');
 
-	const messagesRef = useRef<HTMLDivElement | null>(null);
-	const [isLoading, setLoading] = useState(false);
-
 	const { messages } = useSelector((state: RootState) => state.channelsMessages);
-	const { channel } = useSelector((state: RootState) => state.channel);
 	const { profile } = useSelector((state: RootState) => state.session);
 
-	useMessages(channel?.id!, messagesRef);
+	const { isLoading } = useMessages(messagesRef);
+
+	const params = useParams();
+	const channelId = +params.id!;
 
 	async function handleSend() {
 		const trimmedMessage = message.trim();
 
 		if (trimmedMessage.length > 0) {
-			setLoading(true);
-			await MessagesApi.send(channel?.id!, profile?.id!, message);
-			setLoading(false);
+			setLoadingMessages(true);
+			await MessagesApi.send(channelId, profile?.id!, message);
+			setLoadingMessages(false);
 			setMessage('');
 		}
 	}
@@ -39,20 +50,28 @@ export default function Messages() {
 		<div className='grid grid-rows-[1fr_auto] overflow-hidden'>
 			<div ref={messagesRef} className='scrollbar'>
 				<div className='space-y-6 px-6 py-4'>
-					{messages?.map((message) => (
-						<div key={message.id} className='flex gap-4'>
-							<Avatar src={message.profiles?.avatar_url!} storage='avatars' />
-							<div>
-								<div className='mb-1 flex items-center gap-6'>
-									<div className='text-lg font-medium'>{message.profiles?.username}</div>
-									<div className='text-sm text-foreground-400'>
-										{moment(message.created_at).format('LT')}
+					{isLoading ? (
+						<>
+							<SkeletonMessage />
+							<SkeletonMessage />
+							<SkeletonMessage />
+						</>
+					) : (
+						messages?.map((message) => (
+							<div key={message.id} className='flex gap-4'>
+								<Avatar src={message.profiles?.avatar_url!} storage='avatars' />
+								<div>
+									<div className='mb-1 flex items-center gap-6'>
+										<div className='text-lg font-medium'>{message.profiles?.username}</div>
+										<div className='text-sm text-foreground-400'>
+											{moment(message.created_at).format('LT')}
+										</div>
 									</div>
+									<p className='text-wrap'>{message.text}</p>
 								</div>
-								<p className='text-wrap'>{message.text}</p>
 							</div>
-						</div>
-					))}
+						))
+					)}
 				</div>
 			</div>
 
@@ -64,14 +83,14 @@ export default function Messages() {
 							aria-label='Send Message'
 							className='self-end'
 							color='primary'
-							isLoading={isLoading}
+							isLoading={isLoadingMessages}
 							spinner={<Spinner color='white' size='sm' />}
 							onClick={() => handleSend()}>
 							<SendIcon height={24} width={24} />
 						</Button>
 					}
 					placeholder='Enter your messsage'
-					readOnly={isLoading}
+					readOnly={isLoadingMessages}
 					value={message}
 					onChange={(event) => setMessage(event.target.value)}
 				/>
