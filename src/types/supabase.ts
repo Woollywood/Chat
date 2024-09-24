@@ -90,6 +90,45 @@ export type Database = {
           },
         ]
       }
+      channels_messages: {
+        Row: {
+          channel_id: number | null
+          created_at: string
+          id: number
+          text: string
+          user_id: string | null
+        }
+        Insert: {
+          channel_id?: number | null
+          created_at?: string
+          id?: number
+          text: string
+          user_id?: string | null
+        }
+        Update: {
+          channel_id?: number | null
+          created_at?: string
+          id?: number
+          text?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "channels_messages_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "channels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "channels_messages_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       deleted_channels_members: {
         Row: {
           channel_id: number
