@@ -70,11 +70,11 @@ export default function Messages() {
 			<div ref={messagesRef} className='scrollbar'>
 				<div className='px-6 py-4'>
 					{isLoading ? (
-						<>
+						<div className='space-y-6'>
 							<SkeletonMessage />
 							<SkeletonMessage />
 							<SkeletonMessage />
-						</>
+						</div>
 					) : (
 						Object.entries(formattedMessages!).map(([key, { messages }]) => (
 							<div key={key}>
