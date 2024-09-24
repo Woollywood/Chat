@@ -7,7 +7,8 @@ export class MessagesApi {
 		const { data } = await supabase
 			.from('channels_messages')
 			.select('*, profiles ( * )')
-			.eq('channel_id', channelId);
+			.eq('channel_id', channelId)
+			.order('id', { ascending: true });
 
 		return data;
 	}

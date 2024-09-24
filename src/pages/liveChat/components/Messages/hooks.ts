@@ -36,7 +36,9 @@ export function useMessages(messagesContainer: MutableRefObject<HTMLDivElement |
 		}
 
 		fetchMessages();
+	}, [channelId]);
 
+	useEffect(() => {
 		WebSocketService.subscribe<Database['public']['Tables']['channels_messages']['Row']>({
 			name: 'channels_messages',
 			table: 'channels_messages',
@@ -54,7 +56,7 @@ export function useMessages(messagesContainer: MutableRefObject<HTMLDivElement |
 		return () => {
 			WebSocketService.unsubscribeAll({ name: 'channels_messages' });
 		};
-	}, [channelId]);
+	}, [members]);
 
 	return { isLoading };
 }
