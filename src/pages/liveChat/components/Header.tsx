@@ -8,13 +8,13 @@ import Avatar from '@/components/avatar';
 import { RootState } from '@/store';
 
 export default function Header() {
-	const { isLoading } = useLiveChatContext();
+	const { isLoading } = useLiveChatContext()!;
 	const { channel, members } = useSelector((state: RootState) => state.channel);
 
 	const onlineCount = members?.filter((member) => member.profiles?.user_activity?.status === 'ONLINE').length;
 
 	return (
-		<div className='grid grid-rows-[auto_1fr] divide-y-1 divide-foreground-300'>
+		<>
 			{isLoading ? (
 				<div className='flex h-28 flex-col justify-center gap-4 px-6 py-2 pb-4'>
 					<div className='h-auto'>
@@ -53,7 +53,6 @@ export default function Header() {
 					</div>
 				</div>
 			)}
-			<div>Something</div>
-		</div>
+		</>
 	);
 }

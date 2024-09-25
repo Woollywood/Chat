@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+body {
+	@apply overflow-hidden;
+}
+
 .scrollbar {
 	@apply overflow-auto;
 }
@@ -15,5 +19,17 @@
 }
 
 .scrollbar::-webkit-scrollbar-thumb {
+	@apply rounded-lg bg-foreground-300;
+}
+
+textarea::-webkit-scrollbar {
+	@apply w-2;
+}
+
+textarea::-webkit-scrollbar-track {
+	@apply bg-black;
+}
+
+textarea::-webkit-scrollbar-thumb {
 	@apply rounded-lg bg-foreground-300;
 }

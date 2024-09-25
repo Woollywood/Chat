@@ -2,7 +2,6 @@ import { forwardRef, useEffect, useState } from 'react';
 import { Avatar as UIAvatar, AvatarProps } from '@nextui-org/avatar';
 
 import { supabase } from '@/supabase';
-import { Database } from '@/types/supabase';
 
 interface Props extends AvatarProps {
 	storage: string;
