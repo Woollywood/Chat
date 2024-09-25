@@ -2,9 +2,6 @@ import { useState, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import moment from 'moment';
-import { Textarea } from '@nextui-org/input';
-import { Button } from '@nextui-org/button';
-import { Spinner } from '@nextui-org/spinner';
 import { Skeleton } from '@nextui-org/skeleton';
 
 import { ActionType } from '../../reducer';
@@ -14,11 +11,11 @@ import { useMessages } from './hooks';
 import Message from './components/Message';
 import RepliedMessage from './components/RepliedMessage';
 
-import { SendIcon } from '@/components/icons';
 import { MessagesApi } from '@/api/MessagesApi';
 import { RootState, AppDispatch } from '@/store';
 import { StoreMessage } from '@/stores/channelsMessages/types';
 import { editMessageAction } from '@/stores/channelsMessages';
+import { Textarea } from '@/components/controls/message';
 
 function SkeletonMessage() {
 	return (
@@ -64,6 +61,7 @@ export default function Messages() {
 
 	async function handleSend() {
 		const trimmedMessage = message.trim();
+		console.log(trimmedMessage);
 
 		if (trimmedMessage.length > 0) {
 			setLoadingMessages(true);
@@ -108,31 +106,17 @@ export default function Messages() {
 				</div>
 			</div>
 
-			<div className='px-6 py-4'>
-				{(state?.type === 'reply' || state?.type === 'edit') && (
-					<RepliedMessage {...state.message} className='mb-2' />
-				)}
-				<Textarea
-					endContent={
-						<Button
-							isIconOnly
-							aria-label='Send Message'
-							className='self-end'
-							color='primary'
-							isLoading={isLoadingMessages}
-							spinner={<Spinner color='white' size='sm' />}
-							onClick={() => handleSend()}>
-							<SendIcon height={24} width={24} />
-						</Button>
-					}
-					placeholder='Enter your messsage'
-					readOnly={isLoadingMessages}
-					value={message}
-					onChange={(event) =>
-						dispatchContext({ type: ActionType.CHANGE_MESSAGE, payload: event.target.value })
-					}
-				/>
-			</div>
+			<Textarea
+				header={
+					(state?.type === 'reply' || state?.type === 'edit') && (
+						<RepliedMessage {...state.message} className='mb-2' />
+					)
+				}
+				isLoading={isLoadingMessages}
+				value={message}
+				onChange={(event) => dispatchContext({ type: ActionType.CHANGE_MESSAGE, payload: event.target.value })}
+				onSend={handleSend}
+			/>
 		</div>
 	);
 }
