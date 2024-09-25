@@ -109,8 +109,9 @@ export default function Messages() {
 			</div>
 
 			<div className='px-6 py-4'>
-				{state?.type === 'reply' ||
-					(state?.type === 'edit' && <RepliedMessage {...state.message} className='mb-2' />)}
+				{(state?.type === 'reply' || state?.type === 'edit') && (
+					<RepliedMessage {...state.message} className='mb-2' />
+				)}
 				<Textarea
 					endContent={
 						<Button
