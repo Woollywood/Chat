@@ -8,7 +8,7 @@ import Avatar from '@/components/avatar';
 import { RootState } from '@/store';
 
 export default function Header() {
-	const { isLoading } = useLiveChatContext();
+	const { isLoading } = useLiveChatContext()!;
 	const { channel, members } = useSelector((state: RootState) => state.channel);
 
 	const onlineCount = members?.filter((member) => member.profiles?.user_activity?.status === 'ONLINE').length;

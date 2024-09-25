@@ -12,7 +12,18 @@ export const slice = createSlice({
 	initialState,
 	reducers: {
 		insertMessage: (state, { payload }: PayloadAction<StoreMessage>) => {
-			state.messages?.push(payload);
+			state.messages?.push({
+				...payload,
+				repliedMessage: payload.replied_to
+					? (() => {
+							const message = state.messages?.find((message) => message.id === payload.replied_to);
+							// eslint-disable-next-line @typescript-eslint/no-unused-vars
+							const { repliedMessage, ...rest } = message!;
+
+							return rest;
+						})()
+					: null,
+			});
 		},
 		deleteMessage: (state, { payload }: PayloadAction<number>) => ({
 			messages: state.messages?.filter((message) => message.id !== payload)!,

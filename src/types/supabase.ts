@@ -95,6 +95,7 @@ export type Database = {
           channel_id: number | null
           created_at: string
           id: number
+          replied_to: number | null
           text: string
           user_id: string | null
         }
@@ -102,6 +103,7 @@ export type Database = {
           channel_id?: number | null
           created_at?: string
           id?: number
+          replied_to?: number | null
           text: string
           user_id?: string | null
         }
@@ -109,6 +111,7 @@ export type Database = {
           channel_id?: number | null
           created_at?: string
           id?: number
+          replied_to?: number | null
           text?: string
           user_id?: string | null
         }
@@ -118,6 +121,13 @@ export type Database = {
             columns: ["channel_id"]
             isOneToOne: false
             referencedRelation: "channels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "channels_messages_replied_to_fkey"
+            columns: ["replied_to"]
+            isOneToOne: false
+            referencedRelation: "channels_messages"
             referencedColumns: ["id"]
           },
           {

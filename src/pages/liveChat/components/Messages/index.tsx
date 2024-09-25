@@ -7,11 +7,13 @@ import { Button } from '@nextui-org/button';
 import { Spinner } from '@nextui-org/spinner';
 import { Skeleton } from '@nextui-org/skeleton';
 
+import { ActionType } from '../../reducer';
+import { useLiveChatContext, useLiveChatDispatchContext } from '../../context';
+
 import { useMessages } from './hooks';
-
 import Message from './components/Message';
+import RepliedMessageState from './components/RepliedMessageState';
 
-import Avatar from '@/components/avatar';
 import { SendIcon } from '@/components/icons';
 import { MessagesApi } from '@/api/MessagesApi';
 import { RootState } from '@/store';
@@ -31,6 +33,9 @@ export default function Messages() {
 	const [isLoadingMessages, setLoadingMessages] = useState(false);
 	const messagesRef = useRef<HTMLDivElement | null>(null);
 	const [message, setMessage] = useState('');
+
+	const { state } = useLiveChatContext()!;
+	const dispatchContext = useLiveChatDispatchContext()!;
 
 	const { messages } = useSelector((state: RootState) => state.channelsMessages);
 	const formattedMessages = messages?.reduce<FormattedMessage>((acc, message) => {
@@ -61,7 +66,14 @@ export default function Messages() {
 
 		if (trimmedMessage.length > 0) {
 			setLoadingMessages(true);
-			await MessagesApi.send(channelId, profile?.id!, message);
+			switch (state?.type) {
+				case 'reply':
+					await MessagesApi.reply(channelId, profile?.id!, state.message.id, trimmedMessage);
+					break;
+				default:
+					await MessagesApi.send(channelId, profile?.id!, trimmedMessage);
+			}
+			dispatchContext({ type: ActionType.RESET_STATE });
 			setLoadingMessages(false);
 			setMessage('');
 		}
@@ -83,7 +95,7 @@ export default function Messages() {
 								<div className='flex items-center justify-center py-8 text-foreground-300'>{key}</div>
 								<div className='space-y-8'>
 									{messages.map((message) => (
-										<Message key={message.id} {...message} />
+										<Message key={message.id} action={message} message={message} />
 									))}
 								</div>
 							</div>
@@ -93,6 +105,7 @@ export default function Messages() {
 			</div>
 
 			<div className='px-6 py-4'>
+				{state?.type === 'reply' && <RepliedMessageState {...state.message} className='mb-2' />}
 				<Textarea
 					endContent={
 						<Button

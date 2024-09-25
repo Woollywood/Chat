@@ -1,7 +1,10 @@
 import { Database } from '@/types/supabase';
 
-export type StoreMessage = Database['public']['Tables']['channels_messages']['Row'] & {
+type BaseMessage = Database['public']['Tables']['channels_messages']['Row'] & {
 	profiles: Database['public']['Tables']['profiles']['Row'] | null;
+};
+export type StoreMessage = BaseMessage & {
+	repliedMessage?: BaseMessage | null;
 };
 export interface InitialState {
 	messages: StoreMessage[] | null;
