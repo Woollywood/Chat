@@ -20,7 +20,7 @@ export default function Members() {
 	const dispatch = useDispatch<AppDispatch>();
 	const { session } = useSelector((state: RootState) => state.session);
 	const { channel, members } = useSelector((state: RootState) => state.channel);
-	const { isLoading } = useLiveChatContext();
+	const { isLoading } = useLiveChatContext()!;
 
 	function updateMembers(
 		payload: RealtimePostgresUpdatePayload<Database['public']['Tables']['user_activity']['Row']>,

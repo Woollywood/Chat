@@ -10,7 +10,7 @@ import Section from '@/components/Section';
 import { RootState } from '@/store';
 
 export default function Details() {
-	const { isLoading } = useLiveChatContext();
+	const { isLoading } = useLiveChatContext()!;
 	const { channel } = useSelector((state: RootState) => state.channel);
 
 	return (

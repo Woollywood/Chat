@@ -10,7 +10,7 @@ import { deleteChannelAction, leaveChannelAction } from '@/stores/channels';
 export default function LeaveChat() {
 	const navigate = useNavigate();
 	const dispatch = useDispatch<AppDispatch>();
-	const { isLoading } = useLiveChatContext();
+	const { isLoading } = useLiveChatContext()!;
 	const { channel } = useSelector((state: RootState) => state.channel);
 	const { session } = useSelector((state: RootState) => state.session);
 
