@@ -61,7 +61,6 @@ export default function Messages() {
 
 	async function handleSend() {
 		const trimmedMessage = message.trim();
-		console.log(trimmedMessage);
 
 		if (trimmedMessage.length > 0) {
 			setLoadingMessages(true);
