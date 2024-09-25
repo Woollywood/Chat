@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-import { getMessages } from './actions';
+import { getMessages, deleteMessage } from './actions';
 import { InitialState, StoreMessage } from './types';
 
 const initialState: InitialState = {
@@ -14,10 +14,17 @@ export const slice = createSlice({
 		insertMessage: (state, { payload }: PayloadAction<StoreMessage>) => {
 			state.messages?.push(payload);
 		},
+		deleteMessage: (state, { payload }: PayloadAction<number>) => ({
+			messages: state.messages?.filter((message) => message.id !== payload)!,
+		}),
 	},
 	extraReducers: (builder) => {
-		builder.addCase(getMessages.fulfilled, (_, { payload }) => ({
-			messages: payload,
-		}));
+		builder
+			.addCase(getMessages.fulfilled, (_, { payload }) => ({
+				messages: payload,
+			}))
+			.addCase(deleteMessage.fulfilled, (state, { payload }) => ({
+				messages: state.messages?.filter((message) => message.id !== payload?.id)!,
+			}));
 	},
 });

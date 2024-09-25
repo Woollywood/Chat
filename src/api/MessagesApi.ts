@@ -21,4 +21,10 @@ export class MessagesApi {
 
 		return data;
 	}
+
+	static async del(id: number) {
+		const { data } = await supabase.from('channels_messages').delete().eq('id', id).select('*').single();
+
+		return data;
+	}
 }

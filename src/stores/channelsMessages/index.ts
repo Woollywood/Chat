@@ -1,6 +1,6 @@
 import { slice } from './slice';
 
-export { getMessages } from './actions';
+export { getMessages as getMessagesAction, deleteMessage as deleteMessageAction } from './actions';
 
-export const { insertMessage } = slice.actions;
+export const { insertMessage, deleteMessage } = slice.actions;
 export const reducer = slice.reducer;

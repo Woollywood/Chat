@@ -9,6 +9,8 @@ import { Skeleton } from '@nextui-org/skeleton';
 
 import { useMessages } from './hooks';
 
+import Message from './components/Message';
+
 import Avatar from '@/components/avatar';
 import { SendIcon } from '@/components/icons';
 import { MessagesApi } from '@/api/MessagesApi';
@@ -81,20 +83,7 @@ export default function Messages() {
 								<div className='flex items-center justify-center py-8 text-foreground-300'>{key}</div>
 								<div className='space-y-8'>
 									{messages.map((message) => (
-										<div key={message.id} className='flex gap-4'>
-											<Avatar src={message.profiles?.avatar_url!} storage='avatars' />
-											<div>
-												<div className='mb-1 flex items-center gap-6'>
-													<div className='text-lg font-medium'>
-														{message.profiles?.username}
-													</div>
-													<div className='text-sm text-foreground-400'>
-														{moment(message.created_at).format('LT')}
-													</div>
-												</div>
-												<p className='text-wrap'>{message.text}</p>
-											</div>
-										</div>
+										<Message key={message.id} {...message} />
 									))}
 								</div>
 							</div>
