@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-import { getMessages, deleteMessage } from './actions';
+import { getMessages, deleteMessage, editMessage } from './actions';
 import { InitialState, StoreMessage } from './types';
 
 const initialState: InitialState = {
@@ -28,6 +28,11 @@ export const slice = createSlice({
 		deleteMessage: (state, { payload }: PayloadAction<number>) => ({
 			messages: state.messages?.filter((message) => message.id !== payload)!,
 		}),
+		updateMessage: (state, { payload }: PayloadAction<{ id: Number; text: string }>) => ({
+			messages: state.messages?.map((message) =>
+				message.id === payload.id ? { ...message, text: payload.text } : message,
+			)!,
+		}),
 	},
 	extraReducers: (builder) => {
 		builder
@@ -36,6 +41,11 @@ export const slice = createSlice({
 			}))
 			.addCase(deleteMessage.fulfilled, (state, { payload }) => ({
 				messages: state.messages?.filter((message) => message.id !== payload?.id)!,
+			}))
+			.addCase(editMessage.fulfilled, (state, { payload }) => ({
+				messages: state.messages?.map((message) =>
+					message.id === payload?.id ? { ...message, text: payload.text } : message,
+				)!,
 			}));
 	},
 });

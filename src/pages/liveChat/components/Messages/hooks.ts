@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { WebSocketService } from '@/services/WebSocketService';
-import { getMessagesAction, insertMessage, deleteMessage } from '@/stores/channelsMessages';
+import { getMessagesAction, insertMessage, deleteMessage, updateMessage } from '@/stores/channelsMessages';
 import { AppDispatch, RootState } from '@/store';
 import { Database } from '@/types/supabase';
 
@@ -58,6 +58,15 @@ export function useMessages(messagesContainer: MutableRefObject<HTMLDivElement |
 			table: 'channels_messages',
 		}).del((payload) => {
 			dispatch(deleteMessage(payload.old.id!));
+		});
+
+		WebSocketService.subscribe<Database['public']['Tables']['channels_messages']['Row']>({
+			name: 'channels_messages',
+			table: 'channels_messages',
+		}).update((payload) => {
+			const { new: message } = payload;
+
+			dispatch(updateMessage({ id: message.id, text: message.text }));
 		});
 
 		return () => {

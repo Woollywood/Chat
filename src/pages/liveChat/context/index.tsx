@@ -6,14 +6,16 @@ import { StoreMessage } from '@/stores/channelsMessages/types';
 
 export interface InitialState {
 	isLoading: boolean;
+	message: string;
 	state: {
-		type: 'reply';
+		type: 'reply' | 'edit';
 		message: StoreMessage;
 	} | null;
 }
 
-const InitialState: InitialState = {
+const initialState: InitialState = {
 	isLoading: true,
+	message: '',
 	state: null,
 };
 
@@ -33,7 +35,7 @@ export function useLiveChatDispatchContext() {
 }
 
 export default function ContextProvider({ children }: Props) {
-	const [value, dispatch] = useReducer(reducer, { isLoading: true, state: null });
+	const [value, dispatch] = useReducer(reducer, initialState);
 
 	return (
 		<LiveChatContext.Provider value={value}>

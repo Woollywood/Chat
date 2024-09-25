@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import moment from 'moment';
 import { Textarea } from '@nextui-org/input';
@@ -12,12 +12,13 @@ import { useLiveChatContext, useLiveChatDispatchContext } from '../../context';
 
 import { useMessages } from './hooks';
 import Message from './components/Message';
-import RepliedMessageState from './components/RepliedMessageState';
+import RepliedMessage from './components/RepliedMessage';
 
 import { SendIcon } from '@/components/icons';
 import { MessagesApi } from '@/api/MessagesApi';
-import { RootState } from '@/store';
+import { RootState, AppDispatch } from '@/store';
 import { StoreMessage } from '@/stores/channelsMessages/types';
+import { editMessageAction } from '@/stores/channelsMessages';
 
 function SkeletonMessage() {
 	return (
@@ -32,9 +33,9 @@ type FormattedMessage = Record<string, { messages: StoreMessage[] }>;
 export default function Messages() {
 	const [isLoadingMessages, setLoadingMessages] = useState(false);
 	const messagesRef = useRef<HTMLDivElement | null>(null);
-	const [message, setMessage] = useState('');
 
-	const { state } = useLiveChatContext()!;
+	const { state, message } = useLiveChatContext()!;
+	const dispatch = useDispatch<AppDispatch>();
 	const dispatchContext = useLiveChatDispatchContext()!;
 
 	const { messages } = useSelector((state: RootState) => state.channelsMessages);
@@ -70,12 +71,15 @@ export default function Messages() {
 				case 'reply':
 					await MessagesApi.reply(channelId, profile?.id!, state.message.id, trimmedMessage);
 					break;
+				case 'edit':
+					await dispatch(editMessageAction({ id: state.message.id, text: trimmedMessage }));
+					break;
 				default:
 					await MessagesApi.send(channelId, profile?.id!, trimmedMessage);
 			}
 			dispatchContext({ type: ActionType.RESET_STATE });
 			setLoadingMessages(false);
-			setMessage('');
+			dispatchContext({ type: ActionType.CHANGE_MESSAGE, payload: '' });
 		}
 	}
 
@@ -105,7 +109,8 @@ export default function Messages() {
 			</div>
 
 			<div className='px-6 py-4'>
-				{state?.type === 'reply' && <RepliedMessageState {...state.message} className='mb-2' />}
+				{state?.type === 'reply' ||
+					(state?.type === 'edit' && <RepliedMessage {...state.message} className='mb-2' />)}
 				<Textarea
 					endContent={
 						<Button
@@ -122,7 +127,9 @@ export default function Messages() {
 					placeholder='Enter your messsage'
 					readOnly={isLoadingMessages}
 					value={message}
-					onChange={(event) => setMessage(event.target.value)}
+					onChange={(event) =>
+						dispatchContext({ type: ActionType.CHANGE_MESSAGE, payload: event.target.value })
+					}
 				/>
 			</div>
 		</div>

@@ -2,7 +2,7 @@ import { useSelector, useDispatch } from 'react-redux';
 
 import { useLiveChatDispatchContext } from '@/pages/liveChat/context';
 import { ActionPopover, Action } from '@/components/popovers/action';
-import { DeleteIcon, ReplyIcon } from '@/components/icons';
+import { DeleteIcon, ReplyIcon, EditIcon } from '@/components/icons';
 import { StoreMessage } from '@/stores/channelsMessages/types';
 import { RootState, AppDispatch } from '@/store';
 import { deleteMessageAction } from '@/stores/channelsMessages';
@@ -19,7 +19,7 @@ export default function MessageActions(message: StoreMessage) {
 		dispatch(deleteMessageAction({ id }));
 	}
 
-	function handleStartReply() {
+	function handleReply() {
 		dispatchContext({
 			type: ActionType.CHANGE_STATE,
 			payload: {
@@ -29,21 +29,42 @@ export default function MessageActions(message: StoreMessage) {
 		});
 	}
 
+	function handleEdit() {
+		dispatchContext({
+			type: ActionType.CHANGE_STATE,
+			payload: {
+				type: 'edit',
+				message: message,
+			},
+		});
+		dispatchContext({
+			type: ActionType.CHANGE_MESSAGE,
+			payload: message.text,
+		});
+	}
+
 	return (
 		<ActionPopover
 			actions={
 				<>
 					<Action
 						icon={<ReplyIcon className='fill-foreground-300' height={16} width={16} />}
-						onClick={handleStartReply}>
+						onClick={handleReply}>
 						Ответить
 					</Action>
 					{profile?.id === user_id && (
-						<Action
-							icon={<DeleteIcon className='fill-foreground-300' height={16} width={16} />}
-							onClick={handleDelete}>
-							Удалить
-						</Action>
+						<>
+							<Action
+								icon={<EditIcon className='fill-foreground-300' height={16} width={16} />}
+								onClick={handleEdit}>
+								Редактировать
+							</Action>
+							<Action
+								icon={<DeleteIcon className='fill-foreground-300' height={16} width={16} />}
+								onClick={handleDelete}>
+								Удалить
+							</Action>
+						</>
 					)}
 				</>
 			}

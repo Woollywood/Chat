@@ -11,3 +11,10 @@ export const getMessages = createAsyncThunk(`${typePrefix}/get`, async ({ channe
 export const deleteMessage = createAsyncThunk(`${typePrefix}/delete`, async ({ id }: { id: number }) => {
 	return await MessagesApi.del(id);
 });
+
+export const editMessage = createAsyncThunk(
+	`${typePrefix}/edit`,
+	async ({ id, text }: { id: number; text: string }) => {
+		return await MessagesApi.edit(id, text);
+	},
+);

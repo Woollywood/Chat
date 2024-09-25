@@ -1,16 +1,24 @@
 import { StoreMessage } from '@/stores/channelsMessages/types';
 import { CloseIcon } from '@/components/icons';
-import { useLiveChatDispatchContext } from '@/pages/liveChat/context';
+import { useLiveChatContext, useLiveChatDispatchContext } from '@/pages/liveChat/context';
 import { ActionType } from '@/pages/liveChat/reducer';
 
 interface Props extends StoreMessage {
 	className?: string;
 }
 
-export default function RepliedMessageState({ profiles, text, className }: Props) {
+export default function RepliedMessage({ profiles, text, className }: Props) {
+	const { state } = useLiveChatContext()!;
 	const dispatchContext = useLiveChatDispatchContext()!;
 
 	function handleClose() {
+		if (state?.type === 'edit') {
+			dispatchContext({
+				type: ActionType.CHANGE_MESSAGE,
+				payload: '',
+			});
+		}
+
 		dispatchContext({
 			type: ActionType.RESET_STATE,
 		});

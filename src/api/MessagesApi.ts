@@ -34,6 +34,12 @@ export class MessagesApi {
 		return data;
 	}
 
+	static async edit(id: number, text: string) {
+		const { data } = await supabase.from('channels_messages').update({ text }).eq('id', id).select('*').single();
+
+		return data;
+	}
+
 	static async del(id: number) {
 		const { data } = await supabase.from('channels_messages').delete().eq('id', id).select('*').single();
 
