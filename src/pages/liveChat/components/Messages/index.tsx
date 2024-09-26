@@ -1,21 +1,14 @@
-import { useState, useRef } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { useParams } from 'react-router-dom';
+import { useRef } from 'react';
+import { useSelector } from 'react-redux';
 import moment from 'moment';
 import { Skeleton } from '@nextui-org/skeleton';
 
-import { ActionType } from '../../reducer';
-import { useLiveChatContext, useLiveChatDispatchContext } from '../../context';
-
 import { useMessages } from './hooks';
 import Message from './components/Message';
-import RepliedMessage from './components/RepliedMessage';
+import { Textarea } from './components/controls';
 
-import { MessagesApi } from '@/api/MessagesApi';
-import { RootState, AppDispatch } from '@/store';
+import { RootState } from '@/store';
 import { StoreMessage } from '@/stores/channelsMessages/types';
-import { editMessageAction } from '@/stores/channelsMessages';
-import { Textarea } from '@/components/controls/message';
 
 function SkeletonMessage() {
 	return (
@@ -28,12 +21,8 @@ function SkeletonMessage() {
 type FormattedMessage = Record<string, { messages: StoreMessage[] }>;
 
 export default function Messages() {
-	const [isLoadingMessages, setLoadingMessages] = useState(false);
 	const messagesRef = useRef<HTMLDivElement | null>(null);
-
-	const { state, message } = useLiveChatContext()!;
-	const dispatch = useDispatch<AppDispatch>();
-	const dispatchContext = useLiveChatDispatchContext()!;
+	const { isLoading } = useMessages(messagesRef);
 
 	const { messages } = useSelector((state: RootState) => state.channelsMessages);
 	const formattedMessages = messages?.reduce<FormattedMessage>((acc, message) => {
@@ -51,34 +40,6 @@ export default function Messages() {
 
 		return acc;
 	}, {});
-
-	const { profile } = useSelector((state: RootState) => state.session);
-
-	const { isLoading } = useMessages(messagesRef);
-
-	const params = useParams();
-	const channelId = +params.id!;
-
-	async function handleSend() {
-		const trimmedMessage = message.trim();
-
-		if (trimmedMessage.length > 0) {
-			setLoadingMessages(true);
-			switch (state?.type) {
-				case 'reply':
-					await MessagesApi.reply(channelId, profile?.id!, state.message.id, trimmedMessage);
-					break;
-				case 'edit':
-					await dispatch(editMessageAction({ id: state.message.id, text: trimmedMessage }));
-					break;
-				default:
-					await MessagesApi.send(channelId, profile?.id!, trimmedMessage);
-			}
-			dispatchContext({ type: ActionType.RESET_STATE });
-			setLoadingMessages(false);
-			dispatchContext({ type: ActionType.CHANGE_MESSAGE, payload: '' });
-		}
-	}
 
 	return (
 		<div className='grid grid-rows-[1fr_auto] overflow-hidden'>
@@ -105,17 +66,7 @@ export default function Messages() {
 				</div>
 			</div>
 
-			<Textarea
-				header={
-					(state?.type === 'reply' || state?.type === 'edit') && (
-						<RepliedMessage {...state.message} className='mb-2' />
-					)
-				}
-				isLoading={isLoadingMessages}
-				value={message}
-				onChange={(event) => dispatchContext({ type: ActionType.CHANGE_MESSAGE, payload: event.target.value })}
-				onSend={handleSend}
-			/>
+			<Textarea />
 		</div>
 	);
 }

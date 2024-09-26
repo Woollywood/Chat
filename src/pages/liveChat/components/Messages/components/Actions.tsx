@@ -8,7 +8,7 @@ import { RootState, AppDispatch } from '@/store';
 import { deleteMessageAction } from '@/stores/channelsMessages';
 import { ActionType } from '@/pages/liveChat/reducer';
 
-export default function MessageActions(message: StoreMessage) {
+export default function Actions(message: StoreMessage) {
 	const { id, user_id } = message;
 
 	const dispatch = useDispatch<AppDispatch>();

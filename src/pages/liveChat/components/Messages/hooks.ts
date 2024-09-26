@@ -2,10 +2,20 @@ import { MutableRefObject, useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 
+import { ActionType } from '../../reducer';
+import { useLiveChatContext, useLiveChatDispatchContext } from '../../context';
+
 import { WebSocketService } from '@/services/WebSocketService';
-import { getMessagesAction, insertMessage, deleteMessage, updateMessage } from '@/stores/channelsMessages';
+import {
+	getMessagesAction,
+	insertMessage,
+	deleteMessage,
+	updateMessage,
+	editMessageAction,
+} from '@/stores/channelsMessages';
 import { AppDispatch, RootState } from '@/store';
 import { Database } from '@/types/supabase';
+import { MessagesApi } from '@/api/MessagesApi';
 
 export function useMessages(messagesContainer: MutableRefObject<HTMLDivElement | null>) {
 	const params = useParams();
@@ -75,4 +85,37 @@ export function useMessages(messagesContainer: MutableRefObject<HTMLDivElement |
 	}, [members]);
 
 	return { isLoading };
+}
+
+export function useControls() {
+	const [isLoading, setLoading] = useState(false);
+	const { state, message } = useLiveChatContext()!;
+	const { profile } = useSelector((state: RootState) => state.session);
+	const dispatchContext = useLiveChatDispatchContext()!;
+	const dispatch = useDispatch<AppDispatch>();
+
+	const { id: channelId } = useParams();
+
+	async function handleSend() {
+		const trimmedMessage = message.trim();
+
+		if (trimmedMessage.length > 0) {
+			setLoading(true);
+			switch (state?.type) {
+				case 'reply':
+					await MessagesApi.reply(+channelId!, profile?.id!, state.message.id, trimmedMessage);
+					break;
+				case 'edit':
+					await dispatch(editMessageAction({ id: state.message.id, text: trimmedMessage }));
+					break;
+				default:
+					await MessagesApi.send(+channelId!, profile?.id!, trimmedMessage);
+			}
+			dispatchContext({ type: ActionType.RESET_STATE });
+			setLoading(false);
+			dispatchContext({ type: ActionType.CHANGE_MESSAGE, payload: '' });
+		}
+	}
+
+	return { isLoading, handleSend };
 }

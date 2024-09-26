@@ -1,7 +1,7 @@
 import moment from 'moment';
 import clsx from 'clsx';
 
-import MessageActions from './MessageActions';
+import Actions from './Actions';
 
 import Avatar from '@/components/avatar';
 import { StoreMessage } from '@/stores/channelsMessages/types';
@@ -29,7 +29,7 @@ export default function Message({ message, action, className }: Props) {
 							<p className='text-wrap'>{text}</p>
 						</div>
 						<div className='ml-auto'>
-							<MessageActions {...action!} />
+							<Actions {...action!} />
 						</div>
 					</div>
 					<Message className='pl-4' message={repliedMessage!} />
@@ -46,7 +46,7 @@ export default function Message({ message, action, className }: Props) {
 					</div>
 					{action && (
 						<div className='ml-auto'>
-							<MessageActions {...action!} />
+							<Actions {...action!} />
 						</div>
 					)}
 				</div>
