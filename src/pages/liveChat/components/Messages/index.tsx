@@ -57,7 +57,7 @@ export default function Messages() {
 								<div className='flex items-center justify-center py-8 text-foreground-300'>{key}</div>
 								<div className='space-y-8'>
 									{messages.map((message) => (
-										<Message key={message.id} action={message} message={message} />
+										<Message key={message.id} message={message} />
 									))}
 								</div>
 							</div>
