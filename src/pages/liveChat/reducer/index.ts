@@ -5,11 +5,12 @@ export enum ActionType {
 	CHANGE_LOADING,
 	RESET_STATE,
 	CHANGE_MESSAGE,
+	CHANGE_TEXTAREA_REF,
 }
 
 export interface Action {
 	type: ActionType;
-	payload?: InitialState['state'] | InitialState['isLoading'] | InitialState['message'];
+	payload?: InitialState['state'] | InitialState['isLoading'] | InitialState['message'] | InitialState['textareaRef'];
 }
 
 export function reducer(state: InitialState, { type, payload }: Action): InitialState {
@@ -35,6 +36,8 @@ export function reducer(state: InitialState, { type, payload }: Action): Initial
 		case ActionType.CHANGE_MESSAGE: {
 			return { ...state, message: payload as InitialState['message'] };
 		}
+		case ActionType.CHANGE_TEXTAREA_REF:
+			return { ...state, textareaRef: payload as InitialState['textareaRef'] };
 		default:
 			throw new Error('unknown action type');
 	}

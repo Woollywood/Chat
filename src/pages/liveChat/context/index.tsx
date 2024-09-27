@@ -3,10 +3,12 @@ import { createContext, useContext, useReducer, ReactNode, Dispatch } from 'reac
 import { Action, reducer } from '../reducer';
 
 import { StoreMessage } from '@/stores/channelsMessages/types';
+import { TextareaActions } from '@/components/controls/message/Textarea';
 
 export interface InitialState {
 	isLoading: boolean;
 	message: string;
+	textareaRef: TextareaActions | null;
 	state: {
 		type: 'reply' | 'edit';
 		message: StoreMessage;
@@ -16,6 +18,7 @@ export interface InitialState {
 const initialState: InitialState = {
 	isLoading: true,
 	message: '',
+	textareaRef: null,
 	state: null,
 };
 

@@ -1,7 +1,10 @@
-import { useRef } from 'react';
+import { useRef, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import moment from 'moment';
 import { Skeleton } from '@nextui-org/skeleton';
+
+import { useLiveChatDispatchContext } from '../../context';
+import { ActionType } from '../../reducer';
 
 import { useMessages } from './hooks';
 import Message from './components/Message';
@@ -22,7 +25,14 @@ type FormattedMessage = Record<string, { messages: StoreMessage[] }>;
 
 export default function Messages() {
 	const messagesRef = useRef<HTMLDivElement | null>(null);
+	const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 	const { isLoading } = useMessages(messagesRef);
+
+	const dispatchContext = useLiveChatDispatchContext()!;
+
+	useEffect(() => {
+		dispatchContext({ type: ActionType.CHANGE_TEXTAREA_REF, payload: textareaRef.current });
+	}, [textareaRef]);
 
 	const { messages } = useSelector((state: RootState) => state.channelsMessages);
 	const formattedMessages = messages?.reduce<FormattedMessage>((acc, message) => {
@@ -66,7 +76,7 @@ export default function Messages() {
 				</div>
 			</div>
 
-			<Textarea />
+			<Textarea ref={textareaRef} />
 		</div>
 	);
 }
