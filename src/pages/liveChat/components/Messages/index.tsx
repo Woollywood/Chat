@@ -5,13 +5,14 @@ import { Skeleton } from '@nextui-org/skeleton';
 
 import { useLiveChatDispatchContext } from '../../context';
 import { ActionType } from '../../reducer';
+import Actions from './components/Actions';
 
 import { useMessages } from './hooks';
-import Message from './components/Message';
 import { Textarea } from './components/controls';
 
 import { RootState } from '@/store';
 import { StoreMessage } from '@/stores/channelsMessages/types';
+import { Message } from '@/components/messages';
 
 function SkeletonMessage() {
 	return (
@@ -54,9 +55,9 @@ export default function Messages() {
 	return (
 		<div className='grid grid-rows-[1fr_auto] overflow-hidden'>
 			<div ref={messagesRef} className='scrollbar'>
-				<div className='px-6 py-4'>
+				<div className=''>
 					{isLoading ? (
-						<div className='space-y-6'>
+						<div className='space-y-6 p-4'>
 							<SkeletonMessage />
 							<SkeletonMessage />
 							<SkeletonMessage />
@@ -64,10 +65,12 @@ export default function Messages() {
 					) : (
 						Object.entries(formattedMessages!).map(([key, { messages }]) => (
 							<div key={key}>
-								<div className='flex items-center justify-center py-8 text-foreground-300'>{key}</div>
-								<div className='space-y-8'>
+								<div className='flex items-center justify-center px-4 py-8 text-foreground-300'>
+									{key}
+								</div>
+								<div className='space-y-2'>
 									{messages.map((message) => (
-										<Message key={message.id} message={message} />
+										<Message key={message.id} {...message} actions={<Actions {...message} />} />
 									))}
 								</div>
 							</div>
