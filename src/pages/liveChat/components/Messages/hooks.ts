@@ -28,7 +28,7 @@ export function useMessages(messagesContainer: MutableRefObject<HTMLDivElement |
 	const dispatch = useDispatch<AppDispatch>();
 
 	function scrollBottom() {
-		const innerContainer = messagesContainer.current?.firstChild as HTMLDivElement;
+		const innerContainer = messagesContainer.current?.firstChild as HTMLButtonElement;
 
 		messagesContainer.current?.scrollTo({ top: innerContainer.clientHeight });
 	}
