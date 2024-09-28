@@ -11,7 +11,7 @@ interface Props extends StoreMessage {
 	onClick?: (id: number) => void;
 }
 
-const Message = forwardRef<HTMLButtonElement, Props>(
+const Message = forwardRef<HTMLDivElement, Props>(
 	({ id, created_at, profiles, text, className, actions, repliedMessage, onClick }, ref) => {
 		function handleClick() {
 			if (onClick) {
@@ -20,7 +20,8 @@ const Message = forwardRef<HTMLButtonElement, Props>(
 		}
 
 		return (
-			<button
+			// eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
+			<div
 				ref={ref}
 				className={clsx(
 					'flex w-full cursor-pointer justify-between gap-4 rounded-lg p-2 transition-colors hover:bg-foreground-100',
@@ -44,7 +45,7 @@ const Message = forwardRef<HTMLButtonElement, Props>(
 					<p className='text-wrap break-words text-left text-sm'>{text}</p>
 				</div>
 				<div className='ml-auto'>{actions}</div>
-			</button>
+			</div>
 		);
 	},
 );

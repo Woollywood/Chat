@@ -24,8 +24,8 @@ function SkeletonMessage() {
 
 type FormattedMessage = Record<string, { messages: StoreMessage[] }>;
 type MessageRef = {
-	el: HTMLButtonElement;
-	replied: { id: number; el: HTMLButtonElement } | null;
+	el: HTMLDivElement;
+	replied: { id: number; el: HTMLDivElement } | null;
 };
 
 export default function Messages() {
