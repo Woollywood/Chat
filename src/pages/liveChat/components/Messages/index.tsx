@@ -1,24 +1,18 @@
-import { useState, useRef } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { useParams } from 'react-router-dom';
+import { useRef, useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import moment from 'moment';
-import { Textarea } from '@nextui-org/input';
-import { Button } from '@nextui-org/button';
-import { Spinner } from '@nextui-org/spinner';
 import { Skeleton } from '@nextui-org/skeleton';
 
+import { useLiveChatDispatchContext } from '../../context';
 import { ActionType } from '../../reducer';
-import { useLiveChatContext, useLiveChatDispatchContext } from '../../context';
 
+import Actions from './components/Actions';
 import { useMessages } from './hooks';
-import Message from './components/Message';
-import RepliedMessage from './components/RepliedMessage';
+import { Textarea } from './components/controls';
 
-import { SendIcon } from '@/components/icons';
-import { MessagesApi } from '@/api/MessagesApi';
-import { RootState, AppDispatch } from '@/store';
+import { RootState } from '@/store';
 import { StoreMessage } from '@/stores/channelsMessages/types';
-import { editMessageAction } from '@/stores/channelsMessages';
+import { Message } from '@/components/messages';
 
 function SkeletonMessage() {
 	return (
@@ -29,14 +23,22 @@ function SkeletonMessage() {
 }
 
 type FormattedMessage = Record<string, { messages: StoreMessage[] }>;
+type MessageRef = {
+	el: HTMLButtonElement;
+	replied: { id: number; el: HTMLButtonElement } | null;
+};
 
 export default function Messages() {
-	const [isLoadingMessages, setLoadingMessages] = useState(false);
-	const messagesRef = useRef<HTMLDivElement | null>(null);
+	const messagesContainerRef = useRef<HTMLDivElement | null>(null);
+	const messagesRef = useRef<Map<number, MessageRef>>(new Map());
+	const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+	const { isLoading } = useMessages(messagesContainerRef);
 
-	const { state, message } = useLiveChatContext()!;
-	const dispatch = useDispatch<AppDispatch>();
 	const dispatchContext = useLiveChatDispatchContext()!;
+
+	useEffect(() => {
+		dispatchContext({ type: ActionType.CHANGE_TEXTAREA_REF, payload: textareaRef.current });
+	}, [textareaRef]);
 
 	const { messages } = useSelector((state: RootState) => state.channelsMessages);
 	const formattedMessages = messages?.reduce<FormattedMessage>((acc, message) => {
@@ -55,40 +57,22 @@ export default function Messages() {
 		return acc;
 	}, {});
 
-	const { profile } = useSelector((state: RootState) => state.session);
+	function handleClick(id: number) {
+		const el = messagesRef.current.get(id);
 
-	const { isLoading } = useMessages(messagesRef);
+		if (el?.replied) {
+			const { replied } = el;
 
-	const params = useParams();
-	const channelId = +params.id!;
-
-	async function handleSend() {
-		const trimmedMessage = message.trim();
-
-		if (trimmedMessage.length > 0) {
-			setLoadingMessages(true);
-			switch (state?.type) {
-				case 'reply':
-					await MessagesApi.reply(channelId, profile?.id!, state.message.id, trimmedMessage);
-					break;
-				case 'edit':
-					await dispatch(editMessageAction({ id: state.message.id, text: trimmedMessage }));
-					break;
-				default:
-					await MessagesApi.send(channelId, profile?.id!, trimmedMessage);
-			}
-			dispatchContext({ type: ActionType.RESET_STATE });
-			setLoadingMessages(false);
-			dispatchContext({ type: ActionType.CHANGE_MESSAGE, payload: '' });
+			replied.el.scrollIntoView({ behavior: 'instant', inline: 'nearest', block: 'start' });
 		}
 	}
 
 	return (
 		<div className='grid grid-rows-[1fr_auto] overflow-hidden'>
-			<div ref={messagesRef} className='scrollbar'>
-				<div className='px-6 py-4'>
+			<div ref={messagesContainerRef} className='scrollbar'>
+				<div>
 					{isLoading ? (
-						<div className='space-y-6'>
+						<div className='space-y-6 p-4'>
 							<SkeletonMessage />
 							<SkeletonMessage />
 							<SkeletonMessage />
@@ -96,10 +80,32 @@ export default function Messages() {
 					) : (
 						Object.entries(formattedMessages!).map(([key, { messages }]) => (
 							<div key={key}>
-								<div className='flex items-center justify-center py-8 text-foreground-300'>{key}</div>
-								<div className='space-y-8'>
+								<div className='flex items-center justify-center px-4 py-8 text-foreground-300'>
+									{key}
+								</div>
+								<div className='space-y-2 px-4'>
 									{messages.map((message) => (
-										<Message key={message.id} action={message} message={message} />
+										<Message
+											key={message.id}
+											ref={(el) => {
+												const rootEl = el!;
+												const repliedMessage = message.repliedMessage;
+												const replied = repliedMessage
+													? {
+															id: repliedMessage.id,
+															el: messagesRef.current.get(repliedMessage.id)?.el!,
+														}
+													: null;
+
+												messagesRef.current.set(message.id, {
+													el: rootEl,
+													replied,
+												});
+											}}
+											{...message}
+											actions={<Actions {...message} />}
+											onClick={handleClick}
+										/>
 									))}
 								</div>
 							</div>
@@ -108,31 +114,7 @@ export default function Messages() {
 				</div>
 			</div>
 
-			<div className='px-6 py-4'>
-				{(state?.type === 'reply' || state?.type === 'edit') && (
-					<RepliedMessage {...state.message} className='mb-2' />
-				)}
-				<Textarea
-					endContent={
-						<Button
-							isIconOnly
-							aria-label='Send Message'
-							className='self-end'
-							color='primary'
-							isLoading={isLoadingMessages}
-							spinner={<Spinner color='white' size='sm' />}
-							onClick={() => handleSend()}>
-							<SendIcon height={24} width={24} />
-						</Button>
-					}
-					placeholder='Enter your messsage'
-					readOnly={isLoadingMessages}
-					value={message}
-					onChange={(event) =>
-						dispatchContext({ type: ActionType.CHANGE_MESSAGE, payload: event.target.value })
-					}
-				/>
-			</div>
+			<Textarea ref={textareaRef} />
 		</div>
 	);
 }

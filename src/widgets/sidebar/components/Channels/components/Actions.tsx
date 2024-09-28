@@ -23,14 +23,10 @@ export default function Actions({ channelId }: Props) {
 	}
 
 	return (
-		<ActionPopover
-			actions={
-				<Action
-					icon={<DeleteIcon className='fill-foreground-300' height={16} width={16} />}
-					onClick={handleDelete}>
-					Удалить
-				</Action>
-			}
-		/>
+		<ActionPopover>
+			<Action icon={<DeleteIcon className='fill-foreground-300' height={16} width={16} />} onClick={handleDelete}>
+				Удалить
+			</Action>
+		</ActionPopover>
 	);
 }
