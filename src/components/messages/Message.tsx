@@ -27,8 +27,8 @@ const Message = forwardRef<HTMLButtonElement, Props>(
 					className,
 				)}
 				onClick={handleClick}>
-				<Avatar src={profiles?.avatar_url!} storage='avatars' />
-				<div>
+				<Avatar className='flex-shrink-0' src={profiles?.avatar_url!} storage='avatars' />
+				<div className='overflow-hidden'>
 					<div className='flex gap-6'>
 						<div className='text-lg font-medium'>{profiles?.username}</div>
 						<div className='self-start text-sm text-foreground-400'>{moment(created_at).format('LT')}</div>
@@ -41,7 +41,7 @@ const Message = forwardRef<HTMLButtonElement, Props>(
 							</div>
 						</div>
 					)}
-					<p className='text-wrap text-sm'>{text}</p>
+					<p className='text-wrap break-words text-left text-sm'>{text}</p>
 				</div>
 				<div className='ml-auto'>{actions}</div>
 			</button>
