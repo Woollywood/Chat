@@ -23,7 +23,7 @@ const Message = forwardRef<HTMLButtonElement, Props>(
 			<button
 				ref={ref}
 				className={clsx(
-					'flex cursor-pointer justify-between gap-4 rounded-lg p-2 transition-colors hover:bg-foreground-100',
+					'flex w-full cursor-pointer justify-between gap-4 rounded-lg p-2 transition-colors hover:bg-foreground-100',
 					className,
 				)}
 				onClick={handleClick}>
